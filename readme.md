@@ -1,0 +1,5 @@
+- [ ] Login
+- [ ] Share file
+- [ ] List files
+- [ ] Download file
+- [ ] Share a portion of a file
