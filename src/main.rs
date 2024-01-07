@@ -1,6 +1,6 @@
 use clap::{arg, Command};
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf};
+use std::{collections::HashMap, fs, path::PathBuf};
 
 fn cli() -> Command {
     Command::new("shc")
@@ -22,6 +22,7 @@ fn cli() -> Command {
 struct Config {
     api_key: Option<String>,
     email: Option<String>,
+    name: Option<String>,
 }
 
 impl Config {
@@ -30,6 +31,7 @@ impl Config {
             let config = Config {
                 api_key: None,
                 email: None,
+                name: None,
             };
             config.save(config_path);
             return config;
@@ -54,6 +56,10 @@ fn check_for_api_key(config: &mut Config, config_path: &PathBuf) {
         Some(_) => {}
         None => {
             println!("Please login first");
+            let name = dialoguer::Input::<String>::new()
+                .with_prompt("Email")
+                .interact_text()
+                .unwrap();
             let email = dialoguer::Input::<String>::new()
                 .with_prompt("Email")
                 .interact_text()
@@ -73,7 +79,13 @@ fn check_for_api_key(config: &mut Config, config_path: &PathBuf) {
     }
 }
 
-fn main() {
+#[derive(Deserialize, Serialize, Clone)]
+struct OtpResponse {
+    access_key: String,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config_path = dirs::home_dir()
         .unwrap()
         .join("Documents/DEV/shc-cli/config.toml");
@@ -81,23 +93,63 @@ fn main() {
 
     let matches = cli().get_matches();
 
+    let client = reqwest::Client::new();
+
     match matches.subcommand() {
         Some(("login", _)) => {
+            let name = dialoguer::Input::<String>::new()
+                .with_prompt("Name")
+                .interact_text()
+                .unwrap();
+
             let email = dialoguer::Input::<String>::new()
                 .with_prompt("Email")
                 .interact_text()
                 .unwrap();
+
+            let mut map = HashMap::new();
+
+            map.insert("name", name);
+            map.insert("email", email.clone());
+
+            let res = client
+                .post("http://localhost:6969/api/auth/login")
+                .json(&map)
+                .send()
+                .await?;
+
+            println!("Status: {} {}", res.status(), "OTP sent to your email");
 
             let otp = dialoguer::Input::<String>::new()
                 .with_prompt("Check you mail for OTP, Enter")
                 .interact_text()
                 .unwrap();
 
-            println!("Logging in with email: {} {}", email, "");
+            let mut map = HashMap::new();
 
-            config.email = Some(email.to_string());
-            config.api_key = Some(otp.to_string());
-            config.save(&config_path);
+            map.insert("otp", otp.clone());
+            map.insert("email", email.clone());
+
+            let res = client
+                .post("http://localhost:6969/api/auth/otp")
+                .json(&map)
+                .send()
+                .await?;
+
+             println!("Status: {} {}", res.status(), "rqeuesting for api key");
+
+
+            if res.status().is_success() {
+                println!("Login Successfull");
+                config.email = Some(email.to_string());
+
+                let key: OtpResponse = res.json().await?;
+                config.api_key = Some(key.access_key);
+                config.api_key = Some("".to_string());
+                config.save(&config_path);
+            } else {
+                println!("Login Failed");
+            }
         }
 
         None => println!("No subcommand was used"),
@@ -110,7 +162,11 @@ fn main() {
                     let file_path = PathBuf::from(file);
                     if !file_path.exists() {
                         println!("File not found");
-                        return;
+                        return Err(std::io::Error::new(
+                            std::io::ErrorKind::NotFound,
+                            "File not found",
+                        )
+                        .into());
                     }
                     let file_name = file_path.file_name().unwrap().to_str().unwrap();
                     println!("Sharing file: {} ", file_name);
@@ -119,5 +175,5 @@ fn main() {
             };
         }
     };
+    Ok(())
 }
-
