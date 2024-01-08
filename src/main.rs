@@ -20,7 +20,7 @@ fn cli() -> Command {
 #[derive(Deserialize, Serialize, Clone)]
 
 struct Config {
-    api_key: Option<String>,
+    password: Option<String>,
     email: Option<String>,
     name: Option<String>,
 }
@@ -29,7 +29,7 @@ impl Config {
     fn new(config_path: &PathBuf) -> Self {
         if !config_path.exists() {
             let config = Config {
-                api_key: None,
+                password: None,
                 email: None,
                 name: None,
             };
@@ -52,7 +52,7 @@ impl Config {
 }
 
 fn check_for_api_key(config: &mut Config, config_path: &PathBuf) {
-    match config.api_key.as_ref() {
+    match config.password.as_ref() {
         Some(_) => {}
         None => {
             println!("Please login first");
@@ -73,7 +73,7 @@ fn check_for_api_key(config: &mut Config, config_path: &PathBuf) {
             println!("Logging in with email: {} {}", email, "");
 
             config.email = Some(email.to_string());
-            config.api_key = Some(otp.to_string());
+            config.password = Some(otp.to_string());
             config.save(&config_path);
         }
     }
@@ -81,7 +81,7 @@ fn check_for_api_key(config: &mut Config, config_path: &PathBuf) {
 
 #[derive(Deserialize, Serialize, Clone)]
 struct OtpResponse {
-    access_key: String,
+    password: String,
 }
 
 #[tokio::main]
@@ -109,7 +109,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let mut map = HashMap::new();
 
-            map.insert("name", name);
+            map.insert("name", name.clone());
             map.insert("email", email.clone());
 
             let res = client
@@ -127,6 +127,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let mut map = HashMap::new();
 
+            map.insert("name", name.clone());
             map.insert("otp", otp.clone());
             map.insert("email", email.clone());
 
@@ -142,10 +143,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if res.status().is_success() {
                 println!("Login Successfull");
                 config.email = Some(email.to_string());
-
-                let key: OtpResponse = res.json().await?;
-                config.api_key = Some(key.access_key);
-                config.api_key = Some("".to_string());
+                config.name = Some(name.to_string());
+                let res: OtpResponse = res.json().await?;
+                config.password = Some(res.password);
                 config.save(&config_path);
             } else {
                 println!("Login Failed");
