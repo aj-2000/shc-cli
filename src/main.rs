@@ -1,8 +1,11 @@
 use clap::{arg, Command};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf};
 
-fn cli() -> Command {
+mod app_config;
+mod cli;
+
+fn cli2() -> Command {
     Command::new("shc")
         .about("share code in minimum time")
         .subcommand_required(true)
@@ -17,41 +20,7 @@ fn cli() -> Command {
         )
 }
 
-#[derive(Deserialize, Serialize, Clone)]
-
-struct Config {
-    password: Option<String>,
-    email: Option<String>,
-    name: Option<String>,
-}
-
-impl Config {
-    fn new(config_path: &PathBuf) -> Self {
-        if !config_path.exists() {
-            let config = Config {
-                password: None,
-                email: None,
-                name: None,
-            };
-            config.save(config_path);
-            return config;
-        }
-
-        let contents =
-            fs::read_to_string(config_path).expect("Something went wrong reading the file");
-
-        let config: Config = toml::from_str(&contents).expect("Could not parse TOML");
-
-        config
-    }
-
-    fn save(&self, config_path: &PathBuf) {
-        let toml = toml::to_string(self).unwrap();
-        fs::write(config_path, toml).unwrap();
-    }
-}
-
-fn check_for_api_key(config: &mut Config, config_path: &PathBuf) {
+fn check_for_api_key(config: &mut app_config::AppConfig, config_path: &PathBuf) {
     match config.password.as_ref() {
         Some(_) => {}
         None => {
@@ -86,12 +55,13 @@ struct OtpResponse {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    cli::login::login();
     let config_path = dirs::home_dir()
         .unwrap()
         .join("Documents/DEV/shc-cli/config.toml");
-    let mut config = Config::new(&config_path);
+    let mut config = app_config::AppConfig::new(&config_path);
 
-    let matches = cli().get_matches();
+    let matches = cli2().get_matches();
 
     let client = reqwest::Client::new();
 
@@ -137,8 +107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .send()
                 .await?;
 
-             println!("Status: {} {}", res.status(), "rqeuesting for api key");
-
+            println!("Status: {} {}", res.status(), "rqeuesting for api key");
 
             if res.status().is_success() {
                 println!("Login Successfull");
