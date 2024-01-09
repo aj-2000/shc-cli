@@ -7,6 +7,7 @@ pub struct AppConfig {
     pub password: Option<String>,
     pub email: Option<String>,
     pub name: Option<String>,
+    pub account_id: Option<String>,
 }
 
 impl AppConfig {
@@ -16,6 +17,7 @@ impl AppConfig {
                 password: None,
                 email: None,
                 name: None,
+                account_id: None,
             };
             config.save(config_path);
             return config;

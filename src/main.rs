@@ -51,6 +51,9 @@ fn check_for_api_key(config: &mut app_config::AppConfig, config_path: &PathBuf) 
 #[derive(Deserialize, Serialize, Clone)]
 struct OtpResponse {
     password: String,
+    email: String,
+    name: String,
+    id: String,
 }
 
 #[tokio::main]
@@ -111,9 +114,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             if res.status().is_success() {
                 println!("Login Successfull");
-                config.email = Some(email.to_string());
-                config.name = Some(name.to_string());
                 let res: OtpResponse = res.json().await?;
+                config.email = Some(res.email);
+                config.name = Some(res.name);
+                config.account_id = Some(res.id);
                 config.password = Some(res.password);
                 config.save(&config_path);
             } else {
