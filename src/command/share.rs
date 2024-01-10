@@ -1,13 +1,16 @@
-use std::{collections::HashMap, path::PathBuf, fs};
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, fs, path::PathBuf};
 
 #[derive(Deserialize, Serialize, Clone)]
 struct GetUploadUrlResponse {
     upload_url: String,
     r2_path: String,
 }
-pub async fn upload_file(file_path: &PathBuf, user_id: &str, password: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Uploading file: {}", file_path.display());
+pub async fn upload_file(
+    file_path: &PathBuf,
+    user_id: &str,
+    password: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     if !file_path.exists() {
         println!("File does not exist");
         return Ok(());
@@ -32,7 +35,6 @@ pub async fn upload_file(file_path: &PathBuf, user_id: &str, password: &str) -> 
     println!("Status-geturl: {}", res.status());
 
     let res1: GetUploadUrlResponse = res.json().await?;
-
 
     let res = client
         .put(&res1.upload_url)
@@ -70,7 +72,6 @@ pub async fn upload_file(file_path: &PathBuf, user_id: &str, password: &str) -> 
         .header("user_password", password)
         .send()
         .await?;
-
 
     println!("Status: {}", res.status());
 

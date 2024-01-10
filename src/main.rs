@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
 mod app_config;
-mod cli;
+mod command;
 
 fn cli2() -> Command {
     Command::new("shc")
@@ -29,7 +29,7 @@ fn check_for_api_key(config: &mut app_config::AppConfig, config_path: &PathBuf) 
                 .with_prompt("Email")
                 .interact_text()
                 .unwrap();
-            
+
             let email = dialoguer::Input::<String>::new()
                 .with_prompt("Email")
                 .interact_text()
@@ -59,18 +59,10 @@ struct OtpResponse {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    cli::login::login();
     let config_path = dirs::home_dir()
         .unwrap()
         .join("Documents/DEV/shc-cli/config.toml");
     let mut config = app_config::AppConfig::new(&config_path);
-    println!("{:?}", config);
-        cli::share::upload_file(
-        &config_path,
-        &config.user_id.as_ref().unwrap(),
-        &config.password.as_ref().unwrap(),
-    ).await?;
-    
 
     let matches = cli2().get_matches();
 
@@ -151,6 +143,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     let file_name = file_path.file_name().unwrap().to_str().unwrap();
                     println!("Sharing file: {} ", file_name);
+                    command::share::upload_file(
+                        &file_path,
+                        &config.user_id.as_ref().unwrap(),
+                        &config.password.as_ref().unwrap(),
+                    )
+                    .await?;
                 }
                 _ => println!("Command not found."),
             };
