@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use console::Term;
 use prettytable::{row, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 
@@ -16,15 +15,14 @@ struct File {
 }
 
 pub async fn list_files(
-    search: &String,
+    search: &str,
     user_id: &str,
     password: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
-    let term = Term::stdout();
 
-    let res = client
-        .get("http://localhost:6969/api/file/list")
+    let res = &client
+        .get(format!("http://localhost:6969/api/file/list?search={}", search))
         .header("user_id", user_id)
         .header("user_password", password)
         .send()
@@ -33,23 +31,13 @@ pub async fn list_files(
         .await?;
 
     let mut table = Table::new();
-    table.add_row(row!["Name", "Size", "Updated At", "R2 Path"]);
+    table.add_row(row!["S/N", "Name", "Size", "Visibility", "Updated At", "Shareable Link"]);
 
+    let mut file_index = 0;
     for file in res {
+        file_index += 1;
         let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?);
-
-        let truncated_r2_path = file.r2_path
-            .chars()
-            .enumerate()
-            .map(|(i, c)| {
-                if i > 0 && i % 50 == 0 {
-                    format!("\n{}", c)
-                } else {
-                    c.to_string()
-                }
-            })
-            .collect::<String>();
-
+        let shareable_link = format!("https://sharecode.com/file/{}", file.id);
         let size = if file.size < 1024 {
             format!("{:.3} KB", file.size as f64 / 1024.0)
         } else {
@@ -57,13 +45,15 @@ pub async fn list_files(
         };
 
         table.add_row(Row::new(vec![
+            Cell::new(&format!("{:02}", file_index)),
             Cell::new(&file.name),
             Cell::new(&size),
+            Cell::new("Public".to_string().as_str()),
             Cell::new(&updated_at.format("%Y-%m-%d %H:%M:%S").to_string()),
-            Cell::new(&truncated_r2_path.as_str()),
+            Cell::new(&shareable_link.as_str()),
         ]));
     }
-    console::Term::stdout().write_line("Files:")?;
+    console::Term::stdout().write_line(format!("Files Count: {}", res.len()).as_str())?;
     table.printstd();
 
     Ok(())

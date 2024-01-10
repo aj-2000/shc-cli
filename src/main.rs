@@ -1,8 +1,4 @@
 use std::path::PathBuf;
-
-use clap::builder::Str;
-use serde::de;
-
 mod app_config;
 mod cli;
 mod command;
