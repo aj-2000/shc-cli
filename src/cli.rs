@@ -16,6 +16,6 @@ pub fn cli() -> Command {
         .subcommand(
             Command::new("list")
                 .about("list all files")
-                .arg(arg!(<SEARCH> "search key").required(false))
+                .arg(arg!(<SEARCH> "search key").required(false)),
         )
 }
