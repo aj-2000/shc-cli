@@ -29,6 +29,7 @@ fn check_for_api_key(config: &mut app_config::AppConfig, config_path: &PathBuf) 
                 .with_prompt("Email")
                 .interact_text()
                 .unwrap();
+            
             let email = dialoguer::Input::<String>::new()
                 .with_prompt("Email")
                 .interact_text()
@@ -63,6 +64,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap()
         .join("Documents/DEV/shc-cli/config.toml");
     let mut config = app_config::AppConfig::new(&config_path);
+    println!("{:?}", config);
+        cli::share::upload_file(
+        &config_path,
+        &config.user_id.as_ref().unwrap(),
+        &config.password.as_ref().unwrap(),
+    ).await?;
+    
 
     let matches = cli2().get_matches();
 
@@ -86,7 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             map.insert("email", email.clone());
 
             let res = client
-                .post("http://localhost:6969/api/auth/login")
+                .post("http://localhost:6969/auth/login")
                 .json(&map)
                 .send()
                 .await?;
@@ -105,7 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             map.insert("email", email.clone());
 
             let res = client
-                .post("http://localhost:6969/api/auth/otp")
+                .post("http://localhost:6969/auth/otp")
                 .json(&map)
                 .send()
                 .await?;
@@ -117,7 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let res: OtpResponse = res.json().await?;
                 config.email = Some(res.email);
                 config.name = Some(res.name);
-                config.account_id = Some(res.id);
+                config.user_id = Some(res.id);
                 config.password = Some(res.password);
                 config.save(&config_path);
             } else {
