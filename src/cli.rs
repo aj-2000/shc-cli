@@ -23,4 +23,9 @@ pub fn cli() -> Command {
                 .about("remove file")
                 .arg(arg!(<FILTER> "filter by filename").required(false)),
         )
+        .subcommand(
+            Command::new("rename")
+                .about("rename file")
+                .arg(arg!(<FILTER> "filter by filename").required(false)),
+        )
 }

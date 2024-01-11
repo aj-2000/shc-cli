@@ -39,6 +39,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .await?;
                 }
+                Some(("rename", sub_matches)) => {
+                    let default: String = "".to_string();
+                    //TODO: todo rename search to filter
+                    let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
+                    command::rename::rename_file(
+                        &search,
+                        &config.user_id.as_ref().unwrap(),
+                        &config.password.as_ref().unwrap(),
+                    )
+                    .await?;
+                }
                 Some(("remove", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
