@@ -1,6 +1,8 @@
 use crate::app_config::AppConfig;
+use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::PathBuf};
+use serde_json::json;
+use std::{path::PathBuf, time::Duration};
 
 use crate::consts;
 
@@ -17,6 +19,7 @@ pub async fn login(
     config_path: &PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
+
     let name = dialoguer::Input::<String>::new()
         .with_prompt("Name")
         .interact_text()
@@ -27,38 +30,54 @@ pub async fn login(
         .interact_text()
         .unwrap();
 
-    let mut map = HashMap::new();
+    let pb = ProgressBar::new_spinner();
 
-    map.insert("name", name.clone());
-    map.insert("email", email.clone());
-
+    pb.enable_steady_tick(Duration::from_millis(200));
+    pb.set_style(
+        ProgressStyle::with_template("{spinner:.dim.bold} shc: {wide_msg}")
+            .unwrap()
+            .tick_chars("/|\\- "),
+    );
+    pb.set_message("Sending OTP...");
     let res = client
         .post(format!("{}/auth/login", consts::SHC_BACKEND_API_BASE_URL))
-        .json(&map)
+        .json(&json!({
+            "name": name,
+            "email": email
+        }))
         .send()
         .await?;
 
-    println!("Status: {} {}", res.status(), "OTP sent to your email");
+    pb.finish_and_clear();
 
     let otp = dialoguer::Input::<String>::new()
-        .with_prompt("Check you mail for OTP, Enter")
+        .with_prompt("Check your mail for OTP, Enter")
         .interact_text()
         .unwrap();
 
-    let mut map = HashMap::new();
+    let pb = ProgressBar::new_spinner();
 
-    map.insert("name", name.clone());
-    map.insert("otp", otp.clone());
-    map.insert("email", email.clone());
+    pb.enable_steady_tick(Duration::from_millis(200));
+    pb.set_style(
+        ProgressStyle::with_template("{spinner:.dim.bold} shc: {wide_msg}")
+            .unwrap()
+            .tick_chars("/|\\- "),
+    );
+    pb.set_message("Verifying OTP...");
 
     let res = client
         .post(format!("{}/auth/otp", consts::SHC_BACKEND_API_BASE_URL))
-        .json(&map)
+        .json(&json!(
+            {
+                "name": name,
+                "otp": otp,
+                "email": email
+            }
+        ))
         .send()
         .await?;
 
-    println!("Status: {} {}", res.status(), "rqeuesting for api key");
-
+    pb.finish_and_clear();
     if res.status().is_success() {
         println!("Login Successfull");
         let res: OtpResponse = res.json().await?;

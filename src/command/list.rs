@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
+use indicatif::{ProgressBar, ProgressStyle};
 use prettytable::{row, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 use crate::consts;
-use indicatif::{ProgressBar, ProgressStyle};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct File {
