@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use prettytable::{row, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 
+use crate::consts;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct File {
     pub name: String,
@@ -23,7 +25,8 @@ pub async fn list_files(
 
     let res = &client
         .get(format!(
-            "http://localhost:6969/api/file/list?search={}",
+            "{}/api/file/list?search={}",
+            consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
         .header("user_id", user_id)

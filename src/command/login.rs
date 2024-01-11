@@ -2,6 +2,8 @@ use crate::app_config::AppConfig;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
+use crate::consts;
+
 #[derive(Deserialize, Serialize, Clone)]
 struct OtpResponse {
     password: String,
@@ -31,7 +33,7 @@ pub async fn login(
     map.insert("email", email.clone());
 
     let res = client
-        .post("http://localhost:6969/auth/login")
+        .post(format!("{}/auth/login", consts::SHC_BACKEND_API_BASE_URL))
         .json(&map)
         .send()
         .await?;

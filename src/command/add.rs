@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, path::PathBuf};
 
+use crate::consts;
+
 #[derive(Deserialize, Serialize, Clone)]
 struct GetUploadUrlResponse {
     upload_url: String,
@@ -26,7 +28,10 @@ pub async fn upload_file(
     map.insert("mime_type", mime_type.as_ref());
 
     let res = client
-        .post("http://localhost:6969/api/file/upload-url")
+        .post(format!(
+            "{}/api/file/upload-url",
+           consts::SHC_BACKEND_API_BASE_URL
+        ))
         .json(&map)
         .header("user_id", user_id)
         .header("user_password", password)

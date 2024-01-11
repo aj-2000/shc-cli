@@ -3,6 +3,7 @@ use dialoguer::{Confirm, Editor, Select};
 use serde_json::json;
 
 use crate::command::list::File;
+use crate::consts;
 
 pub async fn rename_file(
     search: &str,
@@ -13,7 +14,8 @@ pub async fn rename_file(
 
     let res = client
         .get(format!(
-            "http://localhost:6969/api/file/list?search={}",
+            "{}/api/file/list?search={}",
+            consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
         .header("user_id", user_id)

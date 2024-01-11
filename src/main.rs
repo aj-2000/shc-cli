@@ -2,6 +2,7 @@ use std::path::PathBuf;
 mod app_config;
 mod cli;
 mod command;
+mod consts;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
