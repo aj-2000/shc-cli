@@ -30,7 +30,7 @@ pub async fn upload_file(
     let res = client
         .post(format!(
             "{}/api/file/upload-url",
-           consts::SHC_BACKEND_API_BASE_URL
+            consts::SHC_BACKEND_API_BASE_URL
         ))
         .json(&map)
         .header("user_id", user_id)
@@ -71,7 +71,9 @@ pub async fn upload_file(
     map.insert("size", &size);
 
     let res = client
-        .post("http://localhost:6969/api/file/add")
+        .post(format!("{}/api/file/add", {
+            consts::SHC_BACKEND_API_BASE_URL
+        }))
         .json(&map)
         .header("user_id", user_id)
         .header("user_password", password)

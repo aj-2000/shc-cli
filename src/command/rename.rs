@@ -63,7 +63,11 @@ pub async fn rename_file(
                 "name": new_filename,
             });
             let res = client
-                .patch(format!("http://localhost:6969/api/file/rename/{}", file_id))
+                .patch(format!(
+                    "{}/api/file/rename/{}",
+                    consts::SHC_BACKEND_API_BASE_URL,
+                    file_id
+                ))
                 .header("user_id", user_id)
                 .header("user_password", password)
                 .json(&body)

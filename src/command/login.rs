@@ -52,7 +52,7 @@ pub async fn login(
     map.insert("email", email.clone());
 
     let res = client
-        .post("http://localhost:6969/auth/otp")
+        .post(format!("{}/auth/otp", consts::SHC_BACKEND_API_BASE_URL))
         .json(&map)
         .send()
         .await?;

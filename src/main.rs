@@ -6,9 +6,11 @@ mod consts;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let config_path = dirs::home_dir()
-        .unwrap()
-        .join("Documents/DEV/shc-cli/config.toml");
+    let shc_folder = dirs::home_dir().unwrap().join(".shc-cli");
+    if !shc_folder.exists() {
+        std::fs::create_dir_all(&shc_folder)?;
+    }
+    let config_path = dirs::home_dir().unwrap().join(".shc-cli/config.toml");
     let mut config = app_config::AppConfig::new(&config_path);
 
     let matches = cli::cli().get_matches();

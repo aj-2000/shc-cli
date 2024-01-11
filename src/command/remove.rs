@@ -58,7 +58,11 @@ pub async fn remove_file(
         print!("Deleting file...");
         let file_id = res[selection].id.clone();
         let res = client
-            .delete(format!("http://localhost:6969/api/file/remove/{}", file_id))
+            .delete(format!(
+                "{}/api/file/remove/{}",
+                consts::SHC_BACKEND_API_BASE_URL,
+                file_id
+            ))
             .header("user_id", user_id)
             .header("user_password", password)
             .send()
