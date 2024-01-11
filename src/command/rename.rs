@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use dialoguer::{Confirm, Editor, Select};
+use indicatif::{ProgressBar, ProgressStyle};
 use serde_json::json;
+use std::time::Duration;
 
 use crate::command::list::File;
 use crate::consts;
@@ -11,6 +13,16 @@ pub async fn rename_file(
     password: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
+
+    let pb = ProgressBar::new_spinner();
+
+    pb.enable_steady_tick(Duration::from_millis(200));
+    pb.set_style(
+        ProgressStyle::with_template("{spinner:.dim.bold} shc: {wide_msg}")
+            .unwrap()
+            .tick_chars("/|\\- "),
+    );
+    pb.set_message("Fetching files...");
 
     let res = client
         .get(format!(
@@ -24,6 +36,7 @@ pub async fn rename_file(
         .await?
         .json::<Vec<File>>()
         .await?;
+    pb.finish_and_clear();
 
     let items = res
         .iter()
@@ -41,12 +54,12 @@ pub async fn rename_file(
         .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>()?;
 
     let selection = Select::new()
-        .with_prompt("Which file do you want to delete?")
+        .with_prompt("Which file do you want to rename?")
         .items(&items)
         .interact()
         .unwrap();
 
-    if let Some(new_filename) = Editor::new().edit("New filename").unwrap() {
+    if let Some(new_filename) = Editor::new().edit("new filename").unwrap() {
         let confirm = Confirm::new()
             .with_prompt("Are you sure?")
             .default(false)
@@ -57,11 +70,16 @@ pub async fn rename_file(
             println!("Aborted");
             return Ok(());
         } else {
-            print!("renaming file...");
             let file_id = res[selection].id.clone();
-            let body = json!({
-                "name": new_filename,
-            });
+            let pb = ProgressBar::new_spinner();
+
+            pb.enable_steady_tick(Duration::from_millis(200));
+            pb.set_style(
+                ProgressStyle::with_template("{spinner:.dim.bold} shc: {wide_msg}")
+                    .unwrap()
+                    .tick_chars("/|\\- "),
+            );
+            pb.set_message("Renaming file...");
             let res = client
                 .patch(format!(
                     "{}/api/file/rename/{}",
@@ -70,9 +88,13 @@ pub async fn rename_file(
                 ))
                 .header("user_id", user_id)
                 .header("user_password", password)
-                .json(&body)
+                .json(&json!({
+                    "name": new_filename,
+                }))
                 .send()
                 .await?;
+
+            pb.finish_and_clear();
 
             if res.status().is_success() {
                 println!("Done");
@@ -81,7 +103,8 @@ pub async fn rename_file(
             }
         }
     } else {
-        println!("Abort!");
+        // TODO: Handle empty filename correctly
+        println!("File name cannot be empty");
     }
 
     Ok(())

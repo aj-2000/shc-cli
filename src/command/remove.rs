@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
 use dialoguer::{Confirm, Select};
+use indicatif::{ProgressBar, ProgressStyle};
+use std::time::Duration;
 
 use crate::command::list::File;
 use crate::consts;
@@ -11,6 +13,15 @@ pub async fn remove_file(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
+    let pb = ProgressBar::new_spinner();
+
+    pb.enable_steady_tick(Duration::from_millis(200));
+    pb.set_style(
+        ProgressStyle::with_template("{spinner:.dim.bold} shc: {wide_msg}")
+            .unwrap()
+            .tick_chars("/|\\- "),
+    );
+    pb.set_message("Fetching files...");
     let res = client
         .get(format!(
             "{}/api/file/list?search={}",
@@ -23,6 +34,7 @@ pub async fn remove_file(
         .await?
         .json::<Vec<File>>()
         .await?;
+    pb.finish_and_clear();
 
     let items = res
         .iter()
@@ -55,7 +67,15 @@ pub async fn remove_file(
         println!("Aborted");
         return Ok(());
     } else {
-        print!("Deleting file...");
+        let pb = ProgressBar::new_spinner();
+
+        pb.enable_steady_tick(Duration::from_millis(200));
+        pb.set_style(
+            ProgressStyle::with_template("{spinner:.dim.bold} shc: {wide_msg}")
+                .unwrap()
+                .tick_chars("/|\\- "),
+        );
+        pb.set_message("Deleting file...");
         let file_id = res[selection].id.clone();
         let res = client
             .delete(format!(
@@ -67,7 +87,7 @@ pub async fn remove_file(
             .header("user_password", password)
             .send()
             .await?;
-
+        pb.finish_and_clear();
         if res.status().is_success() {
             println!("Done");
         } else {
