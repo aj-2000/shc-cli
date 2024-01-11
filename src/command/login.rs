@@ -39,7 +39,7 @@ pub async fn login(
             .tick_chars("/|\\- "),
     );
     pb.set_message("Sending OTP...");
-    let res = client
+    let _ = client
         .post(format!("{}/auth/login", consts::SHC_BACKEND_API_BASE_URL))
         .json(&json!({
             "name": name,

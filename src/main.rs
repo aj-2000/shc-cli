@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 mod app_config;
+
 mod cli;
 mod command;
 mod consts;
@@ -33,8 +34,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         )
                         .into());
                     }
-                    let file_name = file_path.file_name().unwrap().to_str().unwrap();
-                    println!("Sharing file: {} ", file_name);
                     command::add::upload_file(
                         &file_path,
                         &config.user_id.as_ref().unwrap(),
