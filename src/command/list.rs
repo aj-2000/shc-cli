@@ -1,8 +1,10 @@
 use chrono::{DateTime, Utc};
 use prettytable::{row, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 use crate::consts;
+use indicatif::{ProgressBar, ProgressStyle};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct File {
@@ -22,7 +24,16 @@ pub async fn list_files(
     password: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
+    let pb = ProgressBar::new_spinner();
 
+    pb.enable_steady_tick(Duration::from_millis(200));
+    pb.set_style(
+        ProgressStyle::with_template("{spinner:.dim.bold} shc: {wide_msg}")
+            .unwrap()
+            .tick_chars("/|\\- "),
+    );
+
+    pb.set_message("Fetching files...");
     let res = &client
         .get(format!(
             "{}/api/file/list?search={}",
@@ -35,6 +46,7 @@ pub async fn list_files(
         .await?
         .json::<Vec<File>>()
         .await?;
+    pb.finish_and_clear();
 
     let mut table = Table::new();
     table.add_row(row![
@@ -66,7 +78,7 @@ pub async fn list_files(
             Cell::new(&shareable_link.as_str()),
         ]));
     }
-    console::Term::stdout().write_line(format!("Files Count: {}", res.len()).as_str())?;
+    console::Term::stdout().write_line(format!("\nFiles Count: {}\n", res.len()).as_str())?;
     table.printstd();
 
     Ok(())
