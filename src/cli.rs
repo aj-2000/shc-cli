@@ -16,6 +16,11 @@ pub fn cli() -> Command {
         .subcommand(
             Command::new("list")
                 .about("list all files")
-                .arg(arg!(<SEARCH> "search key").required(false)),
+                .arg(arg!(<FILTER> "filter by filename")),
+        )
+        .subcommand(
+            Command::new("remove")
+                .about("remove file")
+                .arg(arg!(<FILTER> "filter by filename")),
         )
 }

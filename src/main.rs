@@ -39,9 +39,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .await?;
                 }
+                Some(("remove", sub_matches)) => {
+                    let default: String = "".to_string();
+                    //TODO: todo rename search to filter
+                    let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
+                    command::remove::remove_file(
+                        &search,
+                        &config.user_id.as_ref().unwrap(),
+                        &config.password.as_ref().unwrap(),
+                    )
+                    .await?;
+                }
                 Some(("list", sub_matches)) => {
                     let default: String = "".to_string();
-                    let search = sub_matches.get_one::<String>("SEARCH").unwrap_or(&default);
+                    //TODO: todo rename search to filter
+                    let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
                     command::list::list_files(
                         &search,
                         &config.user_id.as_ref().unwrap(),
@@ -49,6 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .await?;
                 }
+
                 _ => println!("Command not found."),
             };
         }

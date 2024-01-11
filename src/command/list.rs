@@ -3,15 +3,15 @@ use prettytable::{row, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-struct File {
-    name: String,
-    id: String,
-    extension: String,
-    mime_type: String,
-    size: u64,
-    updated_at: String,
-    user_id: String,
-    r2_path: String,
+pub struct File {
+    pub name: String,
+    pub id: String,
+    pub extension: String,
+    pub mime_type: String,
+    pub size: u64,
+    pub updated_at: String,
+    pub user_id: String,
+    pub r2_path: String,
 }
 
 pub async fn list_files(
@@ -22,7 +22,10 @@ pub async fn list_files(
     let client = reqwest::Client::new();
 
     let res = &client
-        .get(format!("http://localhost:6969/api/file/list?search={}", search))
+        .get(format!(
+            "http://localhost:6969/api/file/list?search={}",
+            search
+        ))
         .header("user_id", user_id)
         .header("user_password", password)
         .send()
@@ -31,7 +34,14 @@ pub async fn list_files(
         .await?;
 
     let mut table = Table::new();
-    table.add_row(row!["S/N", "Name", "Size", "Visibility", "Updated At", "Shareable Link"]);
+    table.add_row(row![
+        "S/N",
+        "Name",
+        "Size",
+        "Visibility",
+        "Updated At",
+        "Shareable Link"
+    ]);
 
     let mut file_index = 0;
     for file in res {
