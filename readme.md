@@ -1,5 +1,3 @@
-- [ ] Login
-- [ ] Share file
-- [ ] List files
+- [ ] Share folder
 - [ ] Download file
 - [ ] Share a portion of a file

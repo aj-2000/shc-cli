@@ -71,11 +71,10 @@ pub async fn upload_file(
     let mut uploaded = 0;
 
     let mut reader_stream = ReaderStream::new(file);
-    console::Term::stdout().hide_cursor()?;
     let bar = ProgressBar::new(total_size);
     bar.set_style(
         ProgressStyle::with_template(
-            "{msg}\n{spinner:.green} [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta}) {bytes_per_sec}",
+            "{msg}\n{spinner:.green} [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta}) {bytes_per_sec} \n",
         )
         .unwrap()
         .progress_chars("#>-"),
@@ -92,7 +91,6 @@ pub async fn upload_file(
                 if uploaded >= total_size {
                     //TODO: fix this
                         bar.finish_and_clear();
-                        console::Term::stdout().show_cursor()?;
                 }
             }
             yield chunk;
