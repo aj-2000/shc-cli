@@ -8,8 +8,7 @@ use crate::consts;
 
 pub async fn remove_file(
     search: &str,
-    user_id: &str,
-    password: &str,
+    access_token: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
@@ -28,8 +27,7 @@ pub async fn remove_file(
             consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
-        .header("user_id", user_id)
-        .header("user_password", password)
+        .header("Authorization", access_token)
         .send()
         .await?
         .json::<Vec<File>>()
@@ -51,11 +49,16 @@ pub async fn remove_file(
         })
         .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>()?;
 
-    let selection = Select::new()
-        .with_prompt("Which file do you want to delete?")
-        .items(&items)
-        .interact()
-        .unwrap();
+    let selection = if items.is_empty() {
+        println!("No files found.");
+        return Ok(());
+    } else {
+        Select::new()
+            .with_prompt("Which file do you want to delete?")
+            .items(&items)
+            .interact()
+            .unwrap()
+    };
 
     let confirm = Confirm::new()
         .with_prompt("Are you sure?")
@@ -83,8 +86,7 @@ pub async fn remove_file(
                 consts::SHC_BACKEND_API_BASE_URL,
                 file_id
             ))
-            .header("user_id", user_id)
-            .header("user_password", password)
+            .header("Authorization", access_token)
             .send()
             .await?;
         pb.finish_and_clear();

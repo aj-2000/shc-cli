@@ -16,8 +16,7 @@ struct GetUploadUrlResponse {
 }
 pub async fn upload_file(
     file_path: &PathBuf,
-    user_id: &str,
-    password: &str,
+    access_token: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if !file_path.exists() {
         println!("File does not exist");
@@ -50,8 +49,7 @@ pub async fn upload_file(
                 "mime_type": mime_type.as_ref()
             }
         ))
-        .header("user_id", user_id)
-        .header("user_password", password)
+        .header("Authorization", access_token)
         .send()
         .await?;
     pb.finish_and_clear();
@@ -126,8 +124,7 @@ pub async fn upload_file(
             "mime_type": mime_type.as_ref(),
             "size": total_size,
         }))
-        .header("user_id", user_id)
-        .header("user_password", password)
+        .header("Authorization", access_token)
         .send()
         .await?;
 

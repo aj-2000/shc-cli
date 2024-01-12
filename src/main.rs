@@ -34,45 +34,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         )
                         .into());
                     }
-                    command::add::upload_file(
-                        &file_path,
-                        &config.user_id.as_ref().unwrap(),
-                        &config.password.as_ref().unwrap(),
-                    )
-                    .await?;
+                    command::add::upload_file(&file_path, &config.access_token.as_ref().unwrap())
+                        .await?;
                 }
                 Some(("rename", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::rename::rename_file(
-                        &search,
-                        &config.user_id.as_ref().unwrap(),
-                        &config.password.as_ref().unwrap(),
-                    )
-                    .await?;
+                    command::rename::rename_file(&search, &config.access_token.as_ref().unwrap())
+                        .await?;
                 }
                 Some(("remove", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::remove::remove_file(
-                        &search,
-                        &config.user_id.as_ref().unwrap(),
-                        &config.password.as_ref().unwrap(),
-                    )
-                    .await?;
+                    command::remove::remove_file(&search, &config.access_token.as_ref().unwrap())
+                        .await?;
                 }
                 Some(("list", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::list::list_files(
-                        &search,
-                        &config.user_id.as_ref().unwrap(),
-                        &config.password.as_ref().unwrap(),
-                    )
-                    .await?;
+                    command::list::list_files(&search, &config.access_token.as_ref().unwrap())
+                        .await?;
                 }
 
                 _ => println!("Command not found."),

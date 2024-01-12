@@ -20,8 +20,7 @@ pub struct File {
 
 pub async fn list_files(
     search: &str,
-    user_id: &str,
-    password: &str,
+    access_token: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let pb = ProgressBar::new_spinner();
@@ -40,8 +39,7 @@ pub async fn list_files(
             consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
-        .header("user_id", user_id)
-        .header("user_password", password)
+        .header("Authorization", access_token)
         .send()
         .await?
         .json::<Vec<File>>()

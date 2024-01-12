@@ -8,7 +8,8 @@ use crate::consts;
 
 #[derive(Deserialize, Serialize, Clone)]
 struct OtpResponse {
-    password: String,
+    access_token: String,
+    refresh_token: String,
     email: String,
     name: String,
     id: String,
@@ -40,7 +41,7 @@ pub async fn login(
     );
     pb.set_message("Sending OTP...");
     let _ = client
-        .post(format!("{}/auth/login", consts::SHC_BACKEND_API_BASE_URL))
+        .post(format!("{}/auth/otp", consts::SHC_BACKEND_API_BASE_URL))
         .json(&json!({
             "name": name,
             "email": email
@@ -66,7 +67,7 @@ pub async fn login(
     pb.set_message("Verifying OTP...");
 
     let res = client
-        .post(format!("{}/auth/otp", consts::SHC_BACKEND_API_BASE_URL))
+        .post(format!("{}/auth/login", consts::SHC_BACKEND_API_BASE_URL))
         .json(&json!(
             {
                 "name": name,
@@ -84,7 +85,8 @@ pub async fn login(
         config.email = Some(res.email);
         config.name = Some(res.name);
         config.user_id = Some(res.id);
-        config.password = Some(res.password);
+        config.access_token = Some(res.access_token);
+        config.refresh_token = Some(res.refresh_token);
         config.save(&config_path);
     } else {
         println!("Login Failed");
@@ -96,7 +98,7 @@ pub async fn check_for_api_key(
     config: &mut AppConfig,
     config_path: &PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    match config.password.as_ref() {
+    match config.access_token.as_ref() {
         Some(_) => {}
         None => {
             println!("Please login first");

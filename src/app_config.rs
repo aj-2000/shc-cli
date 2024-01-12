@@ -4,7 +4,8 @@ use std::{fs, path::PathBuf};
 #[derive(Deserialize, Serialize, Clone, Debug)]
 
 pub struct AppConfig {
-    pub password: Option<String>,
+    pub access_token: Option<String>,
+    pub refresh_token: Option<String>,
     pub email: Option<String>,
     pub name: Option<String>,
     pub user_id: Option<String>,
@@ -14,7 +15,8 @@ impl AppConfig {
     pub fn new(config_path: &PathBuf) -> Self {
         if !config_path.exists() {
             let config = AppConfig {
-                password: None,
+                access_token: None,
+                refresh_token: None,
                 email: None,
                 name: None,
                 user_id: None,
