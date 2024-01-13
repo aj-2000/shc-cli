@@ -60,7 +60,7 @@ pub async fn list_files(
     for file in res {
         file_index += 1;
         let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?);
-        let shareable_link = format!("https://sharecode.com/file/{}", file.id);
+        let shareable_link = format!("https://shc.ajaysharma.dev/files/{}", file.id);
         let size = if file.size < 1024 {
             format!("{:.3} KB", file.size as f64 / 1024.0)
         } else {
