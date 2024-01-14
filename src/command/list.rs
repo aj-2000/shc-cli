@@ -68,11 +68,7 @@ pub async fn list_files(
             format!("{:.3} MB", file.size as f64 / 1024.0 / 1024.0)
         };
 
-        let visibility = if file.is_public {
-            "Public"
-        } else {
-            "Private"
-        };
+        let visibility = if file.is_public { "Public" } else { "Private" };
 
         table.add_row(Row::new(vec![
             Cell::new(&format!("{:02}", file_index)),

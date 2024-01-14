@@ -24,6 +24,11 @@ pub fn cli() -> Command {
                 .arg(arg!(<FILTER> "filter by filename").required(false)),
         )
         .subcommand(
+            Command::new("visibility")
+                .about("toggle file's visibility")
+                .arg(arg!(<FILTER> "filter by filename").required(false)),
+        )
+        .subcommand(
             Command::new("rename")
                 .about("rename file")
                 .arg(arg!(<FILTER> "filter by filename").required(false)),

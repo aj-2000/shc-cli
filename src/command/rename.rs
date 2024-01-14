@@ -50,7 +50,7 @@ pub async fn rename_file(
             Ok(format!("{}  {}  {}", file.name, size, updated_at,))
         })
         .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>()?;
-    
+
     let selection = if items.is_empty() {
         println!("No files found.");
         return Ok(());

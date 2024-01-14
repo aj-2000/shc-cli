@@ -51,6 +51,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     command::remove::remove_file(&search, &config.access_token.as_ref().unwrap())
                         .await?;
                 }
+                Some(("visibility", sub_matches)) => {
+                    let default: String = "".to_string();
+                    //TODO: todo rename search to filter
+                    let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
+                    command::visibility::toggle_file_visibility(
+                        &search,
+                        &config.access_token.as_ref().unwrap(),
+                    )
+                    .await?;
+                }
                 Some(("list", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
