@@ -23,7 +23,7 @@ pub async fn remove_file(
     pb.set_message("Fetching files...");
     let res = client
         .get(format!(
-            "{}/api/file/list?search={}",
+            "{}/api/files/list?search={}",
             consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
@@ -82,7 +82,7 @@ pub async fn remove_file(
         let file_id = res[selection].id.clone();
         let res = client
             .delete(format!(
-                "{}/api/file/remove/{}",
+                "{}/api/files/remove/{}",
                 consts::SHC_BACKEND_API_BASE_URL,
                 file_id
             ))

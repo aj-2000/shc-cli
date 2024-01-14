@@ -40,7 +40,7 @@ pub async fn upload_file(
 
     let res = client
         .post(format!(
-            "{}/api/file/upload-url",
+            "{}/api/files/upload-url",
             consts::SHC_BACKEND_API_BASE_URL
         ))
         .json(&json!(
@@ -114,7 +114,7 @@ pub async fn upload_file(
     pb.set_message("Adding file...");
 
     let res = client
-        .post(format!("{}/api/file/add", {
+        .post(format!("{}/api/files/add", {
             consts::SHC_BACKEND_API_BASE_URL
         }))
         .json(&json!({

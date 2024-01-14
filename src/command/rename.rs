@@ -25,7 +25,7 @@ pub async fn rename_file(
 
     let res = client
         .get(format!(
-            "{}/api/file/list?search={}",
+            "{}/api/files/list?search={}",
             consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
@@ -85,7 +85,7 @@ pub async fn rename_file(
             pb.set_message("Renaming file...");
             let res = client
                 .patch(format!(
-                    "{}/api/file/rename/{}",
+                    "{}/api/files/rename/{}",
                     consts::SHC_BACKEND_API_BASE_URL,
                     file_id
                 ))

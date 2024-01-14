@@ -35,7 +35,7 @@ pub async fn list_files(
     pb.set_message("Fetching files...");
     let res = &client
         .get(format!(
-            "{}/api/file/list?search={}",
+            "{}/api/files/list?search={}",
             consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
