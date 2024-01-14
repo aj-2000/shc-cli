@@ -13,6 +13,7 @@ pub struct File {
     pub extension: String,
     pub mime_type: String,
     pub size: u64,
+    pub is_public: bool,
     pub updated_at: String,
     pub user_id: String,
     pub r2_path: String,
@@ -67,11 +68,17 @@ pub async fn list_files(
             format!("{:.3} MB", file.size as f64 / 1024.0 / 1024.0)
         };
 
+        let visibility = if file.is_public {
+            "Public"
+        } else {
+            "Private"
+        };
+
         table.add_row(Row::new(vec![
             Cell::new(&format!("{:02}", file_index)),
             Cell::new(&file.name),
             Cell::new(&size),
-            Cell::new("Public".to_string().as_str()),
+            Cell::new(visibility),
             Cell::new(&updated_at.format("%Y-%m-%d %H:%M:%S").to_string()),
             Cell::new(&shareable_link.as_str()),
         ]));
