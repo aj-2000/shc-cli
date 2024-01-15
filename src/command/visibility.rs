@@ -91,10 +91,7 @@ pub async fn toggle_file_visibility(
             let res: File = res.json().await?;
 
             let visiblity = if res.is_public { "Public" } else { "Private" };
-            println!(
-                "Visibility of \"{}\" changed to {}",
-                res.name, visiblity
-            );
+            println!("Visibility of \"{}\" changed to {}", res.name, visiblity);
         } else {
             println!("Failed");
         }
