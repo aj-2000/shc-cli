@@ -12,7 +12,7 @@ use tokio_stream::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::consts;
-use crate::command::list::ShcFile
+use crate::command::list::ShcFile;
 
 
 #[derive(Deserialize, Serialize, Clone)]
