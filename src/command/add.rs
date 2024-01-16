@@ -12,7 +12,7 @@ use tokio_stream::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::consts;
-use crate::command::list::File as FileResponse;
+use crate::command::list::ShcFile
 
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -88,7 +88,7 @@ pub async fn upload_file(
     access_token: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if !file_path.exists() {
-        println!("File or Folder does not exist");
+        println!("ShcFile or Folder does not exist");
         return Ok(());
     }
 
@@ -221,8 +221,8 @@ pub async fn upload_file(
     pb.finish_and_clear();
 
     if res.status().is_success() {
-        let res: FileResponse = res.json().await?;
-        print!("\n{} added successfully\nFile Link: https://shc.ajaysharma.dev/files/{}\n", res.name, res.id);
+        let res: ShcFile = res.json().await?;
+        print!("\n{} added successfully\nShcFile Link: https://shc.ajaysharma.dev/files/{}\n", res.name, res.id);
     } else {
         println!("Failed to add file");
     }

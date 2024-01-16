@@ -4,7 +4,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde_json::json;
 use std::time::Duration;
 
-use crate::command::list::File;
+use crate::command::list::ShcFile;
 use crate::consts;
 
 pub async fn rename_file(
@@ -32,7 +32,7 @@ pub async fn rename_file(
         .header("Authorization", access_token)
         .send()
         .await?
-        .json::<Vec<File>>()
+        .json::<Vec<ShcFile>>()
         .await?;
     pb.finish_and_clear();
 
@@ -106,7 +106,7 @@ pub async fn rename_file(
         }
     } else {
         // TODO: Handle empty filename correctly
-        println!("File name cannot be empty");
+        println!("ShcFile name cannot be empty");
     }
 
     Ok(())

@@ -3,7 +3,7 @@ use dialoguer::{Confirm, Select};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
-use crate::command::list::File;
+use crate::command::list::ShcFile;
 use crate::consts;
 
 pub async fn remove_file(
@@ -30,7 +30,7 @@ pub async fn remove_file(
         .header("Authorization", access_token)
         .send()
         .await?
-        .json::<Vec<File>>()
+        .json::<Vec<ShcFile>>()
         .await?;
     pb.finish_and_clear();
 

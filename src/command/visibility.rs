@@ -2,7 +2,7 @@ use dialoguer::{Confirm, Select};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
-use crate::command::list::File;
+use crate::command::list::ShcFile;
 use crate::consts;
 
 pub async fn toggle_file_visibility(
@@ -29,7 +29,7 @@ pub async fn toggle_file_visibility(
         .header("Authorization", access_token)
         .send()
         .await?
-        .json::<Vec<File>>()
+        .json::<Vec<ShcFile>>()
         .await?;
     pb.finish_and_clear();
 
@@ -88,7 +88,7 @@ pub async fn toggle_file_visibility(
             .await?;
 
         if res.status().is_success() {
-            let res: File = res.json().await?;
+            let res: ShcFile = res.json().await?;
 
             let visiblity = if res.is_public { "Public" } else { "Private" };
             println!("Visibility of \"{}\" changed to {}", res.name, visiblity);

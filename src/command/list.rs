@@ -7,7 +7,7 @@ use std::time::Duration;
 use crate::consts;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct File {
+pub struct ShcFile {
     pub name: String,
     pub id: String,
     pub extension: String,
@@ -43,7 +43,7 @@ pub async fn list_files(
         .header("Authorization", access_token)
         .send()
         .await?
-        .json::<Vec<File>>()
+        .json::<Vec<ShcFile>>()
         .await?;
     pb.finish_and_clear();
 
