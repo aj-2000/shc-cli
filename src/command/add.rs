@@ -1,19 +1,18 @@
+use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::cmp::min;
-use std::time::Duration;
-use tokio_util::io::ReaderStream;
 use std::fs::{self, File};
 use std::io::{self};
 use std::path::{Path, PathBuf};
-use zip::{CompressionMethod::Bzip2, ZipWriter};
-use zip::write::FileOptions;
+use std::time::Duration;
 use tokio_stream::StreamExt;
-use indicatif::{ProgressBar, ProgressStyle};
+use tokio_util::io::ReaderStream;
+use zip::write::FileOptions;
+use zip::{CompressionMethod::Bzip2, ZipWriter};
 
-use crate::consts;
 use crate::command::list::ShcFile;
-
+use crate::consts;
 
 #[derive(Deserialize, Serialize, Clone)]
 struct GetUploadUrlResponse {
@@ -21,15 +20,11 @@ struct GetUploadUrlResponse {
     r2_path: String,
 }
 
-fn zip_directory_recursive(
-    src_dir: &Path,
-    size_limit: u64,
-) -> io::Result<PathBuf> {
-        let dest_file_path = src_dir
+fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<PathBuf> {
+    let dest_file_path = src_dir
         .file_name()
         .map(|name| PathBuf::from(name.to_string_lossy().into_owned() + ".zip"))
         .unwrap_or_else(|| PathBuf::from("archive.zip"));
-
 
     let dest_file = File::create(&dest_file_path)?;
 
@@ -47,9 +42,9 @@ fn zip_directory_recursive(
         if path.is_file() {
             let relative_path = path.strip_prefix(base_path).unwrap();
             let zip_path = relative_path.to_string_lossy();
-        let options = FileOptions::default()
-            .compression_method(Bzip2)
-            .unix_permissions(0o755);
+            let options = FileOptions::default()
+                .compression_method(Bzip2)
+                .unix_permissions(0o755);
 
             zip.start_file(zip_path, options)?;
             let mut file = File::open(path)?;
@@ -104,7 +99,7 @@ pub async fn upload_file(
         );
 
         pb.set_message("Compressing folder...");
-        let zip_file_path = zip_directory_recursive(&file_path, 30*1024*1024)?;
+        let zip_file_path = zip_directory_recursive(&file_path, 30 * 1024 * 1024)?;
         pb.finish_and_clear();
         zip_file_path
     } else {
@@ -113,7 +108,14 @@ pub async fn upload_file(
 
     let file_name = file_path.file_name().unwrap().to_str().unwrap();
     let mime_type = mime_guess::from_path(&file_path).first_or_octet_stream();
-
+    let file = tokio::fs::File::open(&file_path)
+        .await
+        .expect("Cannot open input file for HTTPS read");
+    let total_size = file
+        .metadata()
+        .await
+        .expect("Cannot determine input file size for HTTPS read")
+        .len();
     let client = reqwest::Client::new();
 
     let pb = ProgressBar::new_spinner();
@@ -135,7 +137,8 @@ pub async fn upload_file(
         .json(&json!(
             {
                 "file_name": file_name,
-                "mime_type": mime_type.as_ref()
+                "mime_type": mime_type.as_ref(),
+                "file_size": total_size,
             }
         ))
         .header("Authorization", access_token)
@@ -145,15 +148,6 @@ pub async fn upload_file(
 
     let res: GetUploadUrlResponse = res.json().await?;
     let r2_path = res.r2_path;
-
-    let file = tokio::fs::File::open(&file_path)
-        .await
-        .expect("Cannot open input file for HTTPS read");
-    let total_size = file
-        .metadata()
-        .await
-        .expect("Cannot determine input file size for HTTPS read")
-        .len();
 
     let mut uploaded = 0;
 
@@ -222,15 +216,18 @@ pub async fn upload_file(
 
     if res.status().is_success() {
         let res: ShcFile = res.json().await?;
-        print!("\n{} added successfully\nShcFile Link: https://shc.ajaysharma.dev/files/{}\n", res.name, res.id);
+        print!(
+            "\n{} added successfully\nShcFile Link: https://shc.ajaysharma.dev/files/{}\n",
+            res.name, res.id
+        );
     } else {
         println!("Failed to add file");
     }
-    
+
     // Delete the zip file if it was created by the app
     if is_dir {
         std::fs::remove_file(&file_path)?;
     }
-    
+
     Ok(())
 }

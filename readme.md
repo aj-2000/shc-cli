@@ -1,4 +1,4 @@
-- [ ] Share folder
 - [ ] Download file
 - [ ] Share a portion of a file
 - [ ] Resume Upload
+- [ ] gracefull exit
