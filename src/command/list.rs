@@ -17,6 +17,7 @@ pub struct ShcFile {
     pub updated_at: String,
     pub user_id: String,
     pub r2_path: String,
+    pub upload_status: String,
 }
 
 pub async fn list_files(
@@ -53,6 +54,7 @@ pub async fn list_files(
         "Name",
         "Size",
         "Visibility",
+        "Status",
         "Updated At",
         "Shareable Link"
     ]);
@@ -75,7 +77,8 @@ pub async fn list_files(
             Cell::new(&file.name),
             Cell::new(&size),
             Cell::new(visibility),
-            Cell::new(&updated_at.format("%Y-%m-%d %H:%M:%S").to_string()),
+            Cell::new(&file.upload_status),
+            Cell::new(&updated_at.format("%Y-%m-%d %H:%M").to_string()),
             Cell::new(&shareable_link.as_str()),
         ]));
     }

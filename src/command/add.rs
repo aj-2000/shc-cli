@@ -11,13 +11,14 @@ use tokio_util::io::ReaderStream;
 use zip::write::FileOptions;
 use zip::{CompressionMethod::Bzip2, ZipWriter};
 
-use crate::command::list::ShcFile;
 use crate::consts;
 
 #[derive(Deserialize, Serialize, Clone)]
-struct GetUploadUrlResponse {
+struct AddFileResponse {
     upload_url: String,
-    r2_path: String,
+    file_id: String,
+    file_name: String,
+    is_public: bool,
 }
 
 fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<PathBuf> {
@@ -131,7 +132,7 @@ pub async fn upload_file(
 
     let res = client
         .post(format!(
-            "{}/api/files/upload-url",
+            "{}/api/files/add",
             consts::SHC_BACKEND_API_BASE_URL
         ))
         .json(&json!(
@@ -146,8 +147,11 @@ pub async fn upload_file(
         .await?;
     pb.finish_and_clear();
 
-    let res: GetUploadUrlResponse = res.json().await?;
-    let r2_path = res.r2_path;
+    let res: AddFileResponse = res.json().await?;
+    let file_id = res.file_id;
+    let file_name = res.file_name;
+    let upload_url = res.upload_url;
+    // let user_id = res.user_id;
 
     let mut uploaded = 0;
 
@@ -160,6 +164,25 @@ pub async fn upload_file(
         .unwrap()
         .progress_chars("#>-"),
     );
+    let res = client
+        .patch(format!(
+            "{}/api/files/update-upload-status/{}",
+            consts::SHC_BACKEND_API_BASE_URL,
+            file_id
+        ))
+        .json(&json!(
+            {
+                "upload_status": "uploading",
+            }
+        ))
+        .header("Authorization", access_token)
+        .send()
+        .await?;
+
+    if !res.status().is_success() {
+        println!("Failed to add file");
+        return Ok(());
+    }
 
     bar.reset_eta();
     bar.set_message(format!("Uploading {}", file_name));
@@ -177,8 +200,9 @@ pub async fn upload_file(
             yield chunk;
         }
     };
+
     let _ = client
-        .put(&res.upload_url)
+        .put(upload_url)
         .body(reqwest::Body::wrap_stream(async_stream))
         .header("Content-Type", mime_type.as_ref())
         .header("Content-Length", total_size.to_string())
@@ -197,28 +221,30 @@ pub async fn upload_file(
     pb.set_message("Adding file...");
 
     let res = client
-        .post(format!("{}/api/files/add", {
-            consts::SHC_BACKEND_API_BASE_URL
-        }))
-        .json(&json!({
-            "name": file_name,
-            "extension": file_name.split(".").last().unwrap(),
-            "r2_path": r2_path,
-            "is_public": false,
-            "mime_type": mime_type.as_ref(),
-            "size": total_size,
-        }))
+        .patch(format!(
+            "{}/api/files/update-upload-status/{}",
+            consts::SHC_BACKEND_API_BASE_URL,
+            file_id
+        ))
+        .json(&json!(
+            {
+                "upload_status": "uploaded",
+            }
+        ))
         .header("Authorization", access_token)
         .send()
         .await?;
 
+    if !res.status().is_success() {
+        println!("Failed to add file");
+        return Ok(());
+    }
     pb.finish_and_clear();
 
     if res.status().is_success() {
-        let res: ShcFile = res.json().await?;
         print!(
             "\n{} added successfully\nShcFile Link: https://shc.ajaysharma.dev/files/{}\n",
-            res.name, res.id
+            file_name, file_id
         );
     } else {
         println!("Failed to add file");
