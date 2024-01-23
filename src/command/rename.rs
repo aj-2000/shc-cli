@@ -4,7 +4,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde_json::json;
 use std::time::Duration;
 
-use crate::command::list::ShcFile;
+use crate::command::list::ShcFileResponse;
 use crate::consts;
 
 pub async fn rename_file(
@@ -23,20 +23,20 @@ pub async fn rename_file(
     );
     pb.set_message("Fetching files...");
 
-    let res = client
+    let res = &client
         .get(format!(
-            "{}/api/files/list?search={}",
+            "{}/api/files?search={}&page=1&limit=100",
             consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
         .header("Authorization", access_token)
         .send()
         .await?
-        .json::<Vec<ShcFile>>()
+        .json::<ShcFileResponse>()
         .await?;
     pb.finish_and_clear();
 
-    let items = res
+    let items = res.results
         .iter()
         .map(|file| -> Result<String, Box<dyn std::error::Error>> {
             let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?)
@@ -73,7 +73,7 @@ pub async fn rename_file(
             println!("Aborted");
             return Ok(());
         } else {
-            let file_id = res[selection].id.clone();
+            let file_id = res.results[selection].id.clone();
             let pb = ProgressBar::new_spinner();
 
             pb.enable_steady_tick(Duration::from_millis(200));

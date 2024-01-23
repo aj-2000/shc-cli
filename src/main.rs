@@ -44,6 +44,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     command::rename::rename_file(&search, &config.access_token.as_ref().unwrap())
                         .await?;
                 }
+                Some(("get", sub_matches)) => {
+                    let default: String = "".to_string();
+                    //TODO: todo rename search to filter
+                    let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
+                    command::get::download_file(&search, &config.access_token.as_ref().unwrap())
+                        .await?;
+                }
                 Some(("remove", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter

@@ -33,4 +33,9 @@ pub fn cli() -> Command {
                 .about("rename file")
                 .arg(arg!(<FILTER> "filter by filename").required(false)),
         )
+        .subcommand(
+            Command::new("get")
+                .about("download file")
+                .arg(arg!(<FILTER> "filter by filename").required(false)),
+        )
 }

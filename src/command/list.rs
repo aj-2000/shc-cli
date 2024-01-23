@@ -16,8 +16,19 @@ pub struct ShcFile {
     pub is_public: bool,
     pub updated_at: String,
     pub user_id: String,
-    pub r2_path: String,
+    pub download_url: Option<String>,
     pub upload_status: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ShcFileResponse {
+    pub results: Vec<ShcFile>,
+    pub total_results: u64,
+    pub total_pages: u64,
+    pub current_page: u64,
+    pub previous_page: Option<u64>,
+    pub next_page: Option<u64>,
+    pub per_page: u64,
 }
 
 pub async fn list_files(
@@ -37,14 +48,14 @@ pub async fn list_files(
     pb.set_message("Fetching files...");
     let res = &client
         .get(format!(
-            "{}/api/files/list?search={}",
+            "{}/api/files?search={}&page=1&limit=100",
             consts::SHC_BACKEND_API_BASE_URL,
             search
         ))
         .header("Authorization", access_token)
         .send()
         .await?
-        .json::<Vec<ShcFile>>()
+        .json::<ShcFileResponse>()
         .await?;
     pb.finish_and_clear();
 
@@ -60,7 +71,7 @@ pub async fn list_files(
     ]);
 
     let mut file_index = 0;
-    for file in res {
+    for file in &res.results {
         file_index += 1;
         let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?);
         let shareable_link = format!("https://shc.ajaysharma.dev/files/{}", file.id);
@@ -82,7 +93,7 @@ pub async fn list_files(
             Cell::new(&shareable_link.as_str()),
         ]));
     }
-    console::Term::stdout().write_line(format!("\nFiles Count: {}\n", res.len()).as_str())?;
+    console::Term::stdout().write_line(format!("\nFiles Count: {}\n", res.total_results).as_str())?;
     table.printstd();
 
     Ok(())
