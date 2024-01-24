@@ -14,3 +14,4 @@
 - [ ] shc get < link / id >
 - [ ] can we render html on cli or backend?
 - [ ] Path vs PathBuf
+- [ ] make config_path part of AppConfig

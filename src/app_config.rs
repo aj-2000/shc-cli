@@ -37,4 +37,14 @@ impl AppConfig {
         let toml = toml::to_string(self).unwrap();
         fs::write(config_path, toml).unwrap();
     }
+
+    // FIXME: not working
+    pub fn clear(&mut self, config_path: &PathBuf) {
+        self.access_token = None;
+        self.refresh_token = None;
+        self.email = None;
+        self.name = None;
+        self.user_id = None;
+        self.save(config_path);
+    }
 }

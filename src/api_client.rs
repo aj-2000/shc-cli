@@ -31,10 +31,12 @@ impl ApiClient {
     }
 
     async fn refresh_token(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let config_path = dirs::home_dir().unwrap().join(APP_CONFIG_PATH);
+
         if self.tried_refreshing_token {
+            self.app_config.clear(&config_path);
             self.login_again();
         }
-        let config_path = dirs::home_dir().unwrap().join(APP_CONFIG_PATH);
 
         let res = self
             .client
@@ -49,6 +51,9 @@ impl ApiClient {
         match res.status() {
             reqwest::StatusCode::OK => match res.json::<RefreshTokenResponse>().await {
                 Ok(res) => {
+                    self.app_config.email = Some(res.user.email);
+                    self.app_config.name = Some(res.user.name);
+                    self.app_config.user_id = Some(res.user.id);
                     self.app_config.access_token = Some(res.access_token);
                     self.app_config.refresh_token = Some(res.refresh_token);
                     self.app_config.save(&config_path);
@@ -58,7 +63,6 @@ impl ApiClient {
                 }
             },
             _ => {
-                print!("Error refreshing token: {:?}", res.status());
                 self.login_again();
             }
         }
