@@ -3,15 +3,12 @@ use dialoguer::{Confirm, Select};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
-use crate::consts;
-use crate::models::ShcFileResponse;
+use crate::api_client;
 
 pub async fn remove_file(
     search: &str,
-    access_token: &str,
+    api_client: &mut api_client::ApiClient,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
-
     let pb = ProgressBar::new_spinner();
 
     pb.enable_steady_tick(Duration::from_millis(200));
@@ -21,17 +18,9 @@ pub async fn remove_file(
             .tick_chars("/|\\- "),
     );
     pb.set_message("Fetching files...");
-    let res = &client
-        .get(format!(
-            "{}/api/files?search={}&page=1&limit=100",
-            consts::SHC_BACKEND_API_BASE_URL,
-            search
-        ))
-        .header("Authorization", access_token)
-        .send()
-        .await?
-        .json::<ShcFileResponse>()
-        .await?;
+
+    let res = api_client.list_files(search).await?;
+
     pb.finish_and_clear();
 
     let items = res
@@ -81,21 +70,12 @@ pub async fn remove_file(
         );
         pb.set_message("Deleting file...");
         let file_id = res.results[selection].id.clone();
-        let res = client
-            .delete(format!(
-                "{}/api/files/remove/{}",
-                consts::SHC_BACKEND_API_BASE_URL,
-                file_id
-            ))
-            .header("Authorization", access_token)
-            .send()
-            .await?;
+        let res = api_client.remove_file(file_id.as_str()).await;
         pb.finish_and_clear();
-        if res.status().is_success() {
-            println!("Done");
-        } else {
-            println!("Failed");
-        }
+        match res {
+            Ok(_) => println!("Done"),
+            Err(e) => println!("Error: {}", e)
+        } 
     }
     Ok(())
 }

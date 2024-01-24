@@ -1,19 +1,16 @@
-use crate::{api_client, consts};
 use chrono::{DateTime, Utc};
 use console::style;
 use dialoguer::{theme, Select};
 use indicatif::{ProgressBar, ProgressStyle};
-use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+use crate::api_client;
 use crate::utils::format_bytes;
 
 pub async fn list_files(
     search: &str,
-    access_token: &str,
-    refresh_token: &str,
+    api_client: &mut api_client::ApiClient,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
     let pb = ProgressBar::new_spinner();
 
     pb.enable_steady_tick(Duration::from_millis(200));
@@ -24,7 +21,7 @@ pub async fn list_files(
     );
 
     pb.set_message("Fetching files...");
-    let mut api_client = crate::api_client::ApiClient::new(access_token, refresh_token);
+
     let res = api_client.list_files(search).await?;
     pb.finish_and_clear();
 

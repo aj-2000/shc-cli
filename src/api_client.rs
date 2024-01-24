@@ -1,3 +1,4 @@
+use std::io::{Error, ErrorKind};
 use async_recursion::async_recursion;
 
 use crate::consts;
@@ -87,7 +88,31 @@ impl ApiClient {
             }
             _ => {
                 // TODO: use server error message
-                Err(std::io::Error::new(std::io::ErrorKind::Other, "Something went wrong").into())
+                Err(Error::new(ErrorKind::Other, "Something went wrong").into())
+            }
+        }
+    }
+
+    #[async_recursion]
+    pub async fn remove_file(
+        &mut self,
+        file_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let res = self
+            .client
+            .delete(format!("{}/api/files/remove/{}", self.api_base_url, file_id))
+            .header("Authorization", &self.access_token)
+            .send()
+            .await?;
+
+        match res.status() {
+            reqwest::StatusCode::OK => Ok(()),
+            reqwest::StatusCode::UNAUTHORIZED => {
+                self.refresh_token().await?;
+                return self.remove_file(file_id).await;
+            }
+            _ => {
+                Err(Error::new(ErrorKind::Other, "Something went wrong").into())
             }
         }
     }
