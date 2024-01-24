@@ -74,8 +74,8 @@ pub async fn remove_file(
         pb.finish_and_clear();
         match res {
             Ok(_) => println!("Done"),
-            Err(e) => println!("Error: {}", e)
-        } 
+            Err(e) => println!("Error: {}", e),
+        }
     }
     Ok(())
 }

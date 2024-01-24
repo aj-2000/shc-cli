@@ -87,7 +87,7 @@ pub async fn login(
         config.user_id = Some(res.id);
         config.access_token = Some(res.access_token);
         config.refresh_token = Some(res.refresh_token);
-        config.save(&config_path);
+        config.save(config_path);
     } else {
         println!("Login Failed");
     }

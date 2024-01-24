@@ -16,10 +16,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let config_path = dirs::home_dir().unwrap().join(".shc-cli/config.toml");
     let mut config = app_config::AppConfig::new(&config_path);
-    let access_token = &config.access_token.as_ref().unwrap();
-    let refresh_token = &config.refresh_token.as_ref().unwrap();
 
-    let mut api_client = crate::api_client::ApiClient::new(access_token, refresh_token);
+    let mut api_client = crate::api_client::ApiClient::new();
 
     let matches = cli::cli().get_matches();
 
@@ -41,47 +39,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         )
                         .into());
                     }
-                    command::add::upload_file(&file_path, &config.access_token.as_ref().unwrap())
+                    command::add::upload_file(&file_path, config.access_token.as_ref().unwrap())
                         .await?;
                 }
                 Some(("rename", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::rename::rename_file(&search, &config.access_token.as_ref().unwrap())
+                    command::rename::rename_file(search, config.access_token.as_ref().unwrap())
                         .await?;
                 }
                 Some(("get", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::get::download_file(&search, &config.access_token.as_ref().unwrap())
+                    command::get::download_file(search, config.access_token.as_ref().unwrap())
                         .await?;
                 }
-                
+
                 Some(("remove", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::remove::remove_file(&search, &mut api_client)
-                        .await?;
+                    command::remove::remove_file(search, &mut api_client).await?;
                 }
                 Some(("visibility", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::visibility::toggle_file_visibility(
-                        &search,
-                        &config.access_token.as_ref().unwrap(),
-                    )
-                    .await?;
+                    command::visibility::toggle_file_visibility(search, &mut api_client).await?;
                 }
                 Some(("list", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::list::list_files(&search, &mut api_client)
-                        .await?;
+                    command::list::list_files(search, &mut api_client).await?;
                 }
 
                 _ => println!("Command not found."),

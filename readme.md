@@ -13,3 +13,4 @@
 - [ ] set upload_status to failed if get some error
 - [ ] shc get < link / id >
 - [ ] can we render html on cli or backend?
+- [ ] Path vs PathBuf

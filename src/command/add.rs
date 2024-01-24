@@ -80,7 +80,7 @@ fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<PathBu
 }
 
 pub async fn upload_file(
-    file_path: &PathBuf,
+    file_path: &Path,
     access_token: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if !file_path.exists() {
@@ -100,11 +100,11 @@ pub async fn upload_file(
         );
 
         pb.set_message("Compressing folder...");
-        let zip_file_path = zip_directory_recursive(&file_path, 30 * 1024 * 1024)?;
+        let zip_file_path = zip_directory_recursive(file_path, 30 * 1024 * 1024)?;
         pb.finish_and_clear();
         zip_file_path
     } else {
-        file_path.clone()
+        file_path.to_path_buf()
     };
 
     let file_name = file_path.file_name().unwrap().to_str().unwrap();

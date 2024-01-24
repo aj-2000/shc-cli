@@ -42,7 +42,7 @@ pub async fn list_files(
     } else {
         let file_count = items.len();
         let prompt = if file_count > 100 {
-            format!("Select a file to see more info. (Last 100 files, use filter to get more specific results)")
+            "Select a file to see more info. (Last 100 files, use filter to get more specific results)".to_string()
         } else {
             format!("Select a file to see more info.  ({} files)", file_count)
         };

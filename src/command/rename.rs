@@ -63,7 +63,7 @@ pub async fn rename_file(
 
             )
         )
-            .with_prompt(format!("Which file do you want to delete?\nLast 100 files (you can use filter to get more specific results)")).default(0)
+            .with_prompt("Which file do you want to delete?\nLast 100 files (you can use filter to get more specific results)".to_string()).default(0)
             .items(&items)
             .interact()
             .unwrap()
