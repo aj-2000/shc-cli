@@ -2,8 +2,8 @@ use dialoguer::{Confirm, Select};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
-use crate::command::list::{ShcFile, ShcFileResponse};
 use crate::consts;
+use crate::models::{ShcFile, ShcFileResponse};
 
 pub async fn toggle_file_visibility(
     search: &str,
@@ -33,7 +33,8 @@ pub async fn toggle_file_visibility(
         .await?;
     pb.finish_and_clear();
 
-    let items = &res.results
+    let items = &res
+        .results
         .iter()
         .map(|file| -> Result<String, Box<dyn std::error::Error>> {
             let size = if file.size < 1024 {

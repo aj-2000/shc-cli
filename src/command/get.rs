@@ -1,5 +1,3 @@
-use crate::command::list::ShcFile;
-use crate::consts;
 use chrono::{DateTime, Utc};
 use dialoguer::{Confirm, Select};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -9,7 +7,8 @@ use std::io::Write;
 use std::time::Duration;
 use tokio_stream::StreamExt;
 
-use crate::command::list::ShcFileResponse;
+use crate::consts;
+use crate::models::{ShcFile, ShcFileResponse};
 
 pub async fn download_file(
     search: &str,
@@ -39,7 +38,8 @@ pub async fn download_file(
         .await?;
     pb.finish_and_clear();
 
-    let items = res.results
+    let items = res
+        .results
         .iter()
         .map(|file| -> Result<String, Box<dyn std::error::Error>> {
             let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?)

@@ -1,11 +1,11 @@
 use chrono::{DateTime, Utc};
-use dialoguer::{Confirm, Editor, Select};
+use dialoguer::{theme, Confirm, Editor, Select};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_json::json;
 use std::time::Duration;
 
-use crate::command::list::ShcFileResponse;
 use crate::consts;
+use crate::models::ShcFileResponse;
 
 pub async fn rename_file(
     search: &str,
@@ -36,7 +36,10 @@ pub async fn rename_file(
         .await?;
     pb.finish_and_clear();
 
-    let items = res.results
+    print!("{}[2J", 27 as char);
+
+    let items = res
+        .results
         .iter()
         .map(|file| -> Result<String, Box<dyn std::error::Error>> {
             let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?)
@@ -55,8 +58,12 @@ pub async fn rename_file(
         println!("No files found.");
         return Ok(());
     } else {
-        Select::new()
-            .with_prompt("Which file do you want to delete?")
+        Select::with_theme(
+            &theme::ColorfulTheme::default(
+
+            )
+        )
+            .with_prompt(format!("Which file do you want to delete?\nLast 100 files (you can use filter to get more specific results)")).default(0)
             .items(&items)
             .interact()
             .unwrap()

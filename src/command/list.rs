@@ -1,39 +1,17 @@
+use crate::{api_client, consts};
 use chrono::{DateTime, Utc};
+use console::style;
+use dialoguer::{theme, Select};
 use indicatif::{ProgressBar, ProgressStyle};
-use prettytable::{row, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-use crate::consts;
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ShcFile {
-    pub name: String,
-    pub id: String,
-    pub extension: String,
-    pub mime_type: String,
-    pub size: u64,
-    pub is_public: bool,
-    pub updated_at: String,
-    pub user_id: String,
-    pub download_url: Option<String>,
-    pub upload_status: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ShcFileResponse {
-    pub results: Vec<ShcFile>,
-    pub total_results: u64,
-    pub total_pages: u64,
-    pub current_page: u64,
-    pub previous_page: Option<u64>,
-    pub next_page: Option<u64>,
-    pub per_page: u64,
-}
+use crate::utils::format_bytes;
 
 pub async fn list_files(
     search: &str,
     access_token: &str,
+    refresh_token: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let pb = ProgressBar::new_spinner();
@@ -46,55 +24,65 @@ pub async fn list_files(
     );
 
     pb.set_message("Fetching files...");
-    let res = &client
-        .get(format!(
-            "{}/api/files?search={}&page=1&limit=100",
-            consts::SHC_BACKEND_API_BASE_URL,
-            search
-        ))
-        .header("Authorization", access_token)
-        .send()
-        .await?
-        .json::<ShcFileResponse>()
-        .await?;
+    let mut api_client = crate::api_client::ApiClient::new(access_token, refresh_token);
+    let res = api_client.list_files(search).await?;
     pb.finish_and_clear();
 
-    let mut table = Table::new();
-    table.add_row(row![
-        "S/N",
-        "Name",
-        "Size",
-        "Visibility",
-        "Status",
-        "Updated At",
-        "Shareable Link"
-    ]);
+    let items = res
+        .results
+        .iter()
+        .map(|file| -> Result<String, Box<dyn std::error::Error>> {
+            let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?)
+                .format("%Y-%m-%d %H:%M:%S")
+                .to_string();
+            let size = format_bytes(file.size);
+            Ok(format!("{}  {}  {}", file.name, size, updated_at,))
+        })
+        .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>()?;
 
-    let mut file_index = 0;
-    for file in &res.results {
-        file_index += 1;
-        let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?);
-        let shareable_link = format!("https://shc.ajaysharma.dev/files/{}", file.id);
-        let size = if file.size < 1024 {
-            format!("{:.3} KB", file.size as f64 / 1024.0)
+    let selection = if items.is_empty() {
+        return Ok(());
+    } else {
+        let file_count = items.len();
+        let prompt = if file_count > 100 {
+            format!("Select a file to see more info. (Last 100 files, use filter to get more specific results)")
         } else {
-            format!("{:.3} MB", file.size as f64 / 1024.0 / 1024.0)
+            format!("Select a file to see more info.  ({} files)", file_count)
         };
 
-        let visibility = if file.is_public { "Public" } else { "Private" };
+        Select::with_theme(&theme::ColorfulTheme::default())
+            .max_length(20)
+            .with_prompt(prompt)
+            .default(0)
+            .items(&items)
+            .interact()
+            .unwrap()
+    };
 
-        table.add_row(Row::new(vec![
-            Cell::new(&format!("{:02}", file_index)),
-            Cell::new(&file.name),
-            Cell::new(&size),
-            Cell::new(visibility),
-            Cell::new(&file.upload_status),
-            Cell::new(&updated_at.format("%Y-%m-%d %H:%M").to_string()),
-            Cell::new(&shareable_link.as_str()),
-        ]));
-    }
-    console::Term::stdout().write_line(format!("\nFiles Count: {}\n", res.total_results).as_str())?;
-    table.printstd();
+    let file = &res.results[selection];
+    let file_name = &file.name;
+    let upload_status = &file.upload_status;
+    let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?)
+        .format("%Y-%m-%d %H:%M:%S")
+        .to_string();
+    let size = if file.size < 1024 {
+        format!("{:.3} KB", file.size as f64 / 1024.0)
+    } else {
+        format!("{:.3} MB", file.size as f64 / 1024.0 / 1024.0)
+    };
+    let visibility = if file.is_public { "Public" } else { "Private" };
+    let shareable_link = format!("https://shc.ajaysharma.dev/files/{}", file.id);
+
+    console::Term::stdout()
+        .write_line( format!(
+        "\nFile Name: {}\nUpload Status: {}\nUpdated At: {}\nSize: {}\nVisibility: {}\nShareable Link: {}",
+        style(file_name).cyan(),
+        style(upload_status).yellow(),
+        style(updated_at).green(),
+        style(size).magenta(),
+        style(visibility).blue(),
+        style(shareable_link).underlined().bright().blue()
+    ).as_ref())?;
 
     Ok(())
 }

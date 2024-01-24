@@ -1,9 +1,12 @@
 use std::path::PathBuf;
-mod app_config;
 
+mod api_client;
+mod app_config;
 mod cli;
 mod command;
 mod consts;
+mod models;
+mod utils;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -72,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::list::list_files(&search, &config.access_token.as_ref().unwrap())
+                    command::list::list_files(&search, &config.access_token.as_ref().unwrap(), &config.refresh_token.as_ref().unwrap())
                         .await?;
                 }
 
