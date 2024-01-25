@@ -1,8 +1,8 @@
-use dialoguer::{Confirm, Select};
+use dialoguer::Confirm;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
-use crate::api_client;
+use crate::{api_client, tui::shc_file_input};
 
 pub async fn toggle_file_visibility(
     search: &str,
@@ -20,30 +20,12 @@ pub async fn toggle_file_visibility(
     let res = api_client.list_files(search).await?;
     pb.finish_and_clear();
 
-    let items = &res
-        .results
-        .iter()
-        .map(|file| -> Result<String, Box<dyn std::error::Error>> {
-            let size = if file.size < 1024 {
-                format!("{:.3} KB", file.size as f64 / 1024.0)
-            } else {
-                format!("{:.3} MB", file.size as f64 / 1024.0 / 1024.0)
-            };
-            let visibility = if file.is_public { "Public" } else { "Private" };
-            Ok(format!("{}  {}  {}", file.name, size, visibility))
-        })
-        .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>()?;
-
-    let selection = if items.is_empty() {
+    if res.results.is_empty() {
         println!("No files found.");
         return Ok(());
-    } else {
-        Select::new()
-            .with_prompt("Which file you want to change visibility?")
-            .items(items)
-            .interact()
-            .unwrap()
-    };
+    }
+
+    let selection = shc_file_input(&res.results, "Which file do you want to change visibility?");
 
     let confirm = Confirm::new()
         .with_prompt("Are you sure?")

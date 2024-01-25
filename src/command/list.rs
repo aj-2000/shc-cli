@@ -1,11 +1,10 @@
 use chrono::{DateTime, Utc};
 use console::style;
-use dialoguer::{theme, Select};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
 use crate::api_client;
-use crate::utils::format_bytes;
+use crate::tui::shc_file_input;
 
 pub async fn list_files(
     search: &str,
@@ -25,36 +24,20 @@ pub async fn list_files(
     let res = api_client.list_files(search).await?;
     pb.finish_and_clear();
 
-    let items = res
-        .results
-        .iter()
-        .map(|file| -> Result<String, Box<dyn std::error::Error>> {
-            let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?)
-                .format("%Y-%m-%d %H:%M:%S")
-                .to_string();
-            let size = format_bytes(file.size);
-            Ok(format!("{}  {}  {}", file.name, size, updated_at,))
-        })
-        .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>()?;
-
-    let selection = if items.is_empty() {
+    if res.results.is_empty() {
+        println!("No files found.");
         return Ok(());
-    } else {
-        let file_count = items.len();
-        let prompt = if file_count > 100 {
-            "Select a file to see more info. (Last 100 files, use filter to get more specific results)".to_string()
-        } else {
-            format!("Select a file to see more info.  ({} files)", file_count)
-        };
+    }
 
-        Select::with_theme(&theme::ColorfulTheme::default())
-            .max_length(20)
-            .with_prompt(prompt)
-            .default(0)
-            .items(&items)
-            .interact()
-            .unwrap()
+    let file_count = res.results.len();
+    let prompt = if file_count > 100 {
+        "Select a file to see more info. (Last 100 files, use filter to get more specific results)"
+            .to_string()
+    } else {
+        format!("Select a file to see more info.  ({} files)", file_count)
     };
+
+    let selection = shc_file_input(&res.results, &prompt);
 
     let file = &res.results[selection];
     let file_name = &file.name;

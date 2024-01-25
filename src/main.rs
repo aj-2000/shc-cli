@@ -6,6 +6,7 @@ mod cli;
 mod command;
 mod consts;
 mod models;
+mod tui;
 mod utils;
 
 #[tokio::main]
@@ -51,8 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::get::download_file(search, &mut api_client)
-                        .await?;
+                    command::get::download_file(search, &mut api_client).await?;
                 }
 
                 Some(("remove", sub_matches)) => {
