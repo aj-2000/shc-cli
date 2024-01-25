@@ -1,18 +1,14 @@
 use chrono::{DateTime, Utc};
 use dialoguer::{theme, Confirm, Editor, Select};
 use indicatif::{ProgressBar, ProgressStyle};
-use serde_json::json;
 use std::time::Duration;
 
-use crate::consts;
-use crate::models::ShcFileResponse;
+use crate::api_client;
 
 pub async fn rename_file(
     search: &str,
-    access_token: &str,
+    api_client: &mut api_client::ApiClient,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
-
     let pb = ProgressBar::new_spinner();
 
     pb.enable_steady_tick(Duration::from_millis(200));
@@ -23,17 +19,8 @@ pub async fn rename_file(
     );
     pb.set_message("Fetching files...");
 
-    let res = &client
-        .get(format!(
-            "{}/api/files?search={}&page=1&limit=100",
-            consts::SHC_BACKEND_API_BASE_URL,
-            search
-        ))
-        .header("Authorization", access_token)
-        .send()
-        .await?
-        .json::<ShcFileResponse>()
-        .await?;
+    let res = api_client.list_files(search).await?;
+
     pb.finish_and_clear();
 
     print!("{}[2J", 27 as char);
@@ -58,11 +45,7 @@ pub async fn rename_file(
         println!("No files found.");
         return Ok(());
     } else {
-        Select::with_theme(
-            &theme::ColorfulTheme::default(
-
-            )
-        )
+        Select::with_theme(&theme::ColorfulTheme::default())
             .with_prompt("Which file do you want to delete?\nLast 100 files (you can use filter to get more specific results)".to_string()).default(0)
             .items(&items)
             .interact()
@@ -90,25 +73,15 @@ pub async fn rename_file(
                     .tick_chars("/|\\- "),
             );
             pb.set_message("Renaming file...");
-            let res = client
-                .patch(format!(
-                    "{}/api/files/rename/{}",
-                    consts::SHC_BACKEND_API_BASE_URL,
-                    file_id
-                ))
-                .header("Authorization", access_token)
-                .json(&json!({
-                    "name": new_filename,
-                }))
-                .send()
-                .await?;
-
+            let res = api_client.rename_file(file_id.as_str(), new_filename.as_str());
             pb.finish_and_clear();
-
-            if res.status().is_success() {
-                println!("Done");
-            } else {
-                println!("Failed");
+            match res.await {
+                Ok(_) => {
+                    println!("File renamed successfully");
+                }
+                Err(e) => {
+                    println!("Error: {}", e);
+                }
             }
         }
     } else {

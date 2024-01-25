@@ -39,21 +39,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         )
                         .into());
                     }
-                    command::add::upload_file(&file_path, config.access_token.as_ref().unwrap())
-                        .await?;
+                    command::add::upload_file(&file_path, &mut api_client).await?;
                 }
                 Some(("rename", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::rename::rename_file(search, config.access_token.as_ref().unwrap())
-                        .await?;
+                    command::rename::rename_file(search, &mut api_client).await?;
                 }
                 Some(("get", sub_matches)) => {
                     let default: String = "".to_string();
                     //TODO: todo rename search to filter
                     let search = sub_matches.get_one::<String>("FILTER").unwrap_or(&default);
-                    command::get::download_file(search, config.access_token.as_ref().unwrap())
+                    command::get::download_file(search, &mut api_client)
                         .await?;
                 }
 

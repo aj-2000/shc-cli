@@ -38,3 +38,11 @@ pub struct ShcFileResponse {
     pub next_page: Option<u64>,
     pub per_page: u64,
 }
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct AddFileResponse {
+    pub upload_url: String,
+    pub file_id: String,
+    pub file_name: String,
+    pub is_public: bool,
+}

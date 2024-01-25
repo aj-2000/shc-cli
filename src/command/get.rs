@@ -6,13 +6,11 @@ use std::fs::File;
 use std::io::Write;
 use std::time::Duration;
 use tokio_stream::StreamExt;
-
-use crate::consts;
-use crate::models::{ShcFile, ShcFileResponse};
+use crate::api_client;
 
 pub async fn download_file(
     search: &str,
-    access_token: &str,
+    api_client: &mut api_client::ApiClient,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
@@ -25,17 +23,10 @@ pub async fn download_file(
             .tick_chars("/|\\- "),
     );
     pb.set_message("Fetching files...");
-    let res = &client
-        .get(format!(
-            "{}/api/files?search={}&page=1&limit=100",
-            consts::SHC_BACKEND_API_BASE_URL,
-            search
-        ))
-        .header("Authorization", access_token)
-        .send()
-        .await?
-        .json::<ShcFileResponse>()
+   let res = api_client
+        .list_files(search)
         .await?;
+
     pb.finish_and_clear();
 
     let items = res
@@ -85,23 +76,19 @@ pub async fn download_file(
                 .tick_chars("/|\\- "),
         );
         pb.set_message("Preparing for download...");
-        let res = client
-            .get(format!(
-                "{}/api/files/{}",
-                consts::SHC_BACKEND_API_BASE_URL,
-                file_id
-            ))
-            .header("Authorization", access_token)
-            .send()
-            .await?;
+        let res = api_client
+            .get_file_download_url(&file_id)
+            .await;
+        
         pb.finish_and_clear();
-
-        if !res.status().is_success() {
-            println!("Failed");
-            return Ok(());
-        }
-
-        let shc_file = res.json::<ShcFile>().await?;
+        
+        let shc_file = match res {
+            Ok(shc_file) => shc_file,
+            Err(e) => {
+                println!("Error: {}", e);
+                std::process::exit(1);
+            }
+        };
 
         let download_url = shc_file.download_url;
         let file_name = shc_file.name;
