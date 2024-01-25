@@ -3,7 +3,6 @@
 - [ ] Share a portion of a file
 - [ ] Resume Upload
 - [ ] gracefull exit
-- [ ] .shcignore
 - [ ] refresh token
 - [ ] command aliases
 - [ ] improve code by studying aim

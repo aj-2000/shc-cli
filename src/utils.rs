@@ -1,9 +1,11 @@
+use ignore::WalkBuilder;
 use std::fs::{self, File};
 use std::io::{self};
 use std::path::{Path, PathBuf};
 use zip::write::FileOptions;
 use zip::{CompressionMethod::Bzip2, ZipWriter};
-use ignore::WalkBuilder;
+
+use crate::consts::SHC_IGNORE_FILE_NAME;
 
 pub fn format_bytes(bytes: u64) -> String {
     let mut bytes = bytes as f64;
@@ -71,7 +73,11 @@ pub fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<Pa
                 ));
             }
         } else if path.is_dir() {
-            let walker = WalkBuilder::new(path).build();
+            let walker = WalkBuilder::new(path)
+                .git_ignore(false)
+                .add_custom_ignore_filename(SHC_IGNORE_FILE_NAME)
+                .build();
+            
             for result in walker {
                 // TODO: Handle errors
                 let entry_path = result.unwrap().into_path();
