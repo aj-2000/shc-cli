@@ -3,6 +3,7 @@ use std::io::{self};
 use std::path::{Path, PathBuf};
 use zip::write::FileOptions;
 use zip::{CompressionMethod::Bzip2, ZipWriter};
+use ignore::WalkBuilder;
 
 pub fn format_bytes(bytes: u64) -> String {
     let mut bytes = bytes as f64;
@@ -29,6 +30,8 @@ pub fn format_bytes(bytes: u64) -> String {
 }
 
 pub fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<PathBuf> {
+    let src_dir = fs::canonicalize(src_dir)?;
+
     let dest_file_path = src_dir
         .file_name()
         .map(|name| PathBuf::from(name.to_string_lossy().into_owned() + ".zip"))
@@ -68,17 +71,22 @@ pub fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<Pa
                 ));
             }
         } else if path.is_dir() {
-            for entry in fs::read_dir(path)? {
-                let entry = entry?;
-                let entry_path = entry.path();
+            let walker = WalkBuilder::new(path).build();
+            for result in walker {
+                // TODO: Handle errors
+                let entry_path = result.unwrap().into_path();
+
+                // Skip the base path
+                if path == &entry_path {
+                    continue;
+                }
+
                 total_size += zip_inner(&entry_path, zip, base_path, size_limit, current_size)?;
             }
         }
 
         Ok(total_size)
     }
-
-    let src_dir = fs::canonicalize(src_dir)?;
 
     let mut current_size = 0;
 
