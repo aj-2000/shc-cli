@@ -1,28 +1,46 @@
-use chrono::{DateTime, Utc};
+use chrono::DateTime;
 use dialoguer::{theme, Select};
 
 use crate::models::ShcFile;
 use crate::utils::format_bytes;
 
 pub fn shc_file_input(files: &Vec<ShcFile>, prompt: &str) -> usize {
-    let files = files
-        .iter()
-        .map(|file| -> Result<String, Box<dyn std::error::Error>> {
-            let updated_at = DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&file.updated_at)?)
-                .format("%Y-%m-%d %H:%M:%S")
-                .to_string();
-            let size = format_bytes(file.size);
-            let visibility = if file.is_public {
-                "Public".to_string()
-            } else {
-                "Private".to_string()
-            };
-            Ok(format!(
-                "{}  {}  {} {}",
-                file.name, size, updated_at, visibility
+    let name_width = 50;
+    let size_width = 10;
+    let updated_at_width = 20;
+    let visibility_width = 10;
+    let date_formatter = timeago::Formatter::new();
+
+    let files =
+        files
+            .iter()
+            .map(|file| -> Result<String, Box<dyn std::error::Error>> {
+                let mut name = file.name.clone();
+                if name.len() > name_width {
+                    name.truncate(name_width - 5);
+                    name.push_str("...");
+                }
+
+                let time_ago = date_formatter.convert_chrono(
+                    DateTime::parse_from_rfc3339(file.updated_at.as_str())?,
+                    chrono::Utc::now(),
+                );
+                let size = format_bytes(file.size);
+                let visibility = if file.is_public {
+                    "Public".to_string()
+                } else {
+                    "Private".to_string()
+                };
+                Ok(format!(
+                "{:<name_width$}\t{:<size_width$}\t{:<updated_at_width$}\t{:<visibility_width$}",
+                name, size, time_ago, visibility,
+                name_width = name_width,
+                size_width = size_width,
+                updated_at_width = updated_at_width,
+                visibility_width = visibility_width
             ))
-        })
-        .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>();
+            })
+            .collect::<Result<Vec<String>, Box<dyn std::error::Error>>>();
 
     let files = match files {
         Ok(items) => items,

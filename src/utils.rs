@@ -77,7 +77,7 @@ pub fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<Pa
                 .git_ignore(false)
                 .add_custom_ignore_filename(SHC_IGNORE_FILE_NAME)
                 .build();
-            
+
             for result in walker {
                 // TODO: Handle errors
                 let entry_path = result.unwrap().into_path();
