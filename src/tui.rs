@@ -1,11 +1,11 @@
 use chrono::DateTime;
 use dialoguer::{theme, Select};
 
+use crate::consts::MAX_NAME_WIDTH_LENGTH;
 use crate::models::ShcFile;
 use crate::utils::format_bytes;
 
 pub fn shc_file_input(files: &Vec<ShcFile>, prompt: &str) -> usize {
-    let name_width = 50;
     let size_width = 10;
     let updated_at_width = 20;
     let visibility_width = 10;
@@ -16,8 +16,9 @@ pub fn shc_file_input(files: &Vec<ShcFile>, prompt: &str) -> usize {
             .iter()
             .map(|file| -> Result<String, Box<dyn std::error::Error>> {
                 let mut name = file.name.clone();
-                if name.len() > name_width {
-                    name.truncate(name_width - 5);
+                println!("{} {}", name, name.len());
+                if name.len() > MAX_NAME_WIDTH_LENGTH {
+                    name.truncate(name.len() - 5);
                     name.push_str("...");
                 }
 
@@ -32,9 +33,9 @@ pub fn shc_file_input(files: &Vec<ShcFile>, prompt: &str) -> usize {
                     "Private".to_string()
                 };
                 Ok(format!(
-                "{:<name_width$}\t{:<size_width$}\t{:<updated_at_width$}\t{:<visibility_width$}",
+                "{:<name_width$}\t\t{:<size_width$}\t{:<updated_at_width$}\t{:<visibility_width$}",
                 name, size, time_ago, visibility,
-                name_width = name_width,
+                name_width = name.len(),
                 size_width = size_width,
                 updated_at_width = updated_at_width,
                 visibility_width = visibility_width

@@ -15,9 +15,10 @@
 - [ ] make config_path part of AppConfig
 - [ ] dynamic name width?
 - [ ] install script -WIP
-
 - [ ] error.rs
 - [ ] generic config to create more config like user_config
 - [ ] make user and userInfo same
 - [ ] fix mut & if needed
 - [ ] better email otp template
+- [ ] update timeago interactively
+- [ ] localize consts
