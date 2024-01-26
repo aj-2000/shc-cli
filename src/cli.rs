@@ -38,4 +38,5 @@ pub fn cli() -> Command {
                 .about("download file")
                 .arg(arg!(<FILTER> "filter by filename").required(false)),
         )
+        .subcommand(Command::new("logout").about("logout from shc"))
 }

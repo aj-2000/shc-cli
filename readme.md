@@ -3,7 +3,6 @@
 - [ ] Share a portion of a file
 - [ ] Resume Upload
 - [ ] gracefull exit
-- [ ] refresh token
 - [ ] command aliases
 - [ ] improve code by studying aim
 - [ ] highlight imp words in output
@@ -16,3 +15,8 @@
 - [ ] make config_path part of AppConfig
 - [ ] dynamic name width?
 - [ ] install script
+- [ ] error.rs
+- [ ] generic config to create more config like user_config
+- [ ] make user and userInfo same
+- [ ] fix mut & if needed
+- [ ] better email otp template

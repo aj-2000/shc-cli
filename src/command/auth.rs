@@ -1,10 +1,10 @@
-use crate::app_config::AppConfig;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{path::PathBuf, time::Duration};
+use std::time::Duration;
 
 use crate::consts;
+use crate::user_config::UserConfig;
 
 #[derive(Deserialize, Serialize, Clone)]
 struct OtpResponse {
@@ -15,10 +15,7 @@ struct OtpResponse {
     id: String,
 }
 
-pub async fn login(
-    config: &mut AppConfig,
-    config_path: &PathBuf,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn login(user_config: &mut UserConfig) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
     let name = dialoguer::Input::<String>::new()
@@ -82,12 +79,12 @@ pub async fn login(
     if res.status().is_success() {
         println!("Login Successfull");
         let res: OtpResponse = res.json().await?;
-        config.email = Some(res.email);
-        config.name = Some(res.name);
-        config.user_id = Some(res.id);
-        config.access_token = Some(res.access_token);
-        config.refresh_token = Some(res.refresh_token);
-        config.save(config_path);
+        user_config.user.email = Some(res.email);
+        user_config.user.name = Some(res.name);
+        user_config.user.user_id = Some(res.id);
+        user_config.user.access_token = Some(res.access_token);
+        user_config.user.refresh_token = Some(res.refresh_token);
+        user_config.save();
     } else {
         println!("Login Failed");
     }
@@ -95,15 +92,19 @@ pub async fn login(
 }
 
 pub async fn check_for_api_key(
-    config: &mut AppConfig,
-    config_path: &PathBuf,
+    user_config: &mut UserConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    match config.access_token.as_ref() {
+    match user_config.user.access_token.as_ref() {
         Some(_) => {}
         None => {
             println!("Please login first");
-            login(config, config_path).await?;
+            login(user_config).await?;
         }
     }
     Ok(())
+}
+
+pub fn logout(user_config: &mut UserConfig) {
+    user_config.clear();
+    println!("Logged out");
 }

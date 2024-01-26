@@ -2,24 +2,23 @@ use async_recursion::async_recursion;
 use serde_json::json;
 use std::io::{Error, ErrorKind};
 
-use crate::app_config::AppConfig;
-use crate::consts::{APP_CONFIG_PATH, SHC_BACKEND_API_BASE_URL};
+use crate::consts::SHC_BACKEND_API_BASE_URL;
 use crate::models::{AddFileResponse, RefreshTokenResponse, ShcFile, ShcFileResponse};
+use crate::user_config::UserConfig;
 
 pub struct ApiClient {
     api_base_url: String,
     tried_refreshing_token: bool,
-    app_config: AppConfig,
+    user_config: UserConfig,
     client: reqwest::Client,
 }
 
 impl ApiClient {
-    pub fn new() -> ApiClient {
-        let config_path = dirs::home_dir().unwrap().join(APP_CONFIG_PATH);
+    pub fn new(user_config: UserConfig) -> ApiClient {
         ApiClient {
             api_base_url: SHC_BACKEND_API_BASE_URL.to_string(),
             tried_refreshing_token: false,
-            app_config: AppConfig::new(&config_path),
+            user_config: user_config,
             client: reqwest::Client::new(),
         }
     }
@@ -33,10 +32,8 @@ impl ApiClient {
     }
 
     async fn refresh_token(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let config_path = dirs::home_dir().unwrap().join(APP_CONFIG_PATH);
-
         if self.tried_refreshing_token {
-            self.app_config.clear(&config_path);
+            self.user_config.clear();
             self.login_again();
         }
 
@@ -45,7 +42,7 @@ impl ApiClient {
             .get(format!("{}/auth/refresh-token", self.api_base_url))
             .header(
                 "Authorization",
-                self.app_config.refresh_token.as_ref().unwrap(),
+                self.user_config.user.refresh_token.as_ref().unwrap(),
             )
             .send()
             .await?;
@@ -53,12 +50,12 @@ impl ApiClient {
         match res.status() {
             reqwest::StatusCode::OK => match res.json::<RefreshTokenResponse>().await {
                 Ok(res) => {
-                    self.app_config.email = Some(res.user.email);
-                    self.app_config.name = Some(res.user.name);
-                    self.app_config.user_id = Some(res.user.id);
-                    self.app_config.access_token = Some(res.access_token);
-                    self.app_config.refresh_token = Some(res.refresh_token);
-                    self.app_config.save(&config_path);
+                    self.user_config.user.email = Some(res.user.email);
+                    self.user_config.user.name = Some(res.user.name);
+                    self.user_config.user.user_id = Some(res.user.id);
+                    self.user_config.user.access_token = Some(res.access_token);
+                    self.user_config.user.refresh_token = Some(res.refresh_token);
+                    self.user_config.save();
                 }
                 Err(e) => {
                     return Err(e.into());
@@ -76,7 +73,7 @@ impl ApiClient {
         &mut self,
         search: &str,
     ) -> Result<ShcFileResponse, Box<dyn std::error::Error>> {
-        let access_token = self.app_config.access_token.as_ref().unwrap();
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
 
         let res = self
             .client
@@ -106,7 +103,7 @@ impl ApiClient {
 
     #[async_recursion]
     pub async fn remove_file(&mut self, file_id: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let access_token = self.app_config.access_token.as_ref().unwrap();
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
 
         let res = self
             .client
@@ -133,7 +130,7 @@ impl ApiClient {
         &mut self,
         file_id: &str,
     ) -> Result<ShcFile, Box<dyn std::error::Error>> {
-        let access_token = self.app_config.access_token.as_ref().unwrap();
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
 
         let res = self
             .client
@@ -164,7 +161,7 @@ impl ApiClient {
         file_id: &str,
         new_name: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let access_token = self.app_config.access_token.as_ref().unwrap();
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
 
         let res = self
             .client
@@ -196,7 +193,7 @@ impl ApiClient {
         mime_type: &str,
         file_size: u64,
     ) -> Result<AddFileResponse, Box<dyn std::error::Error>> {
-        let access_token = self.app_config.access_token.as_ref().unwrap();
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
 
         let res = self
             .client
@@ -231,7 +228,7 @@ impl ApiClient {
         file_id: &str,
         upload_status: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let access_token = self.app_config.access_token.as_ref().unwrap();
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
 
         let res = self
             .client
@@ -263,7 +260,7 @@ impl ApiClient {
         &mut self,
         file_id: &str,
     ) -> Result<ShcFile, Box<dyn std::error::Error>> {
-        let access_token = self.app_config.access_token.as_ref().unwrap();
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
 
         let res = self
             .client

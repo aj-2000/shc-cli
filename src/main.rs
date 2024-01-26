@@ -1,33 +1,31 @@
-use std::path::PathBuf;
-
 mod api_client;
-mod app_config;
 mod cli;
 mod command;
 mod consts;
 mod models;
 mod tui;
+mod user_config;
 mod utils;
 
+use std::path::PathBuf;
+
+use crate::api_client::ApiClient;
+use crate::command::auth::{check_for_api_key, login, logout};
+
+use crate::user_config::UserConfig;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let shc_folder = dirs::home_dir().unwrap().join(".shc-cli");
-    if !shc_folder.exists() {
-        std::fs::create_dir_all(&shc_folder)?;
-    }
-    let config_path = dirs::home_dir().unwrap().join(".shc-cli/config.toml");
-    let mut config = app_config::AppConfig::new(&config_path);
-
-    let mut api_client = crate::api_client::ApiClient::new();
-
+    let mut user_config = UserConfig::new();
     let matches = cli::cli().get_matches();
 
     match matches.subcommand() {
-        Some(("login", _)) => command::login::login(&mut config, &config_path).await?,
+        Some(("login", _)) => login(&mut user_config).await?,
+        Some(("logout", _)) => logout(&mut user_config),
         None => println!("No subcommand was used"),
 
         _ => {
-            command::login::check_for_api_key(&mut config, &config_path).await?;
+            check_for_api_key(&mut user_config).await?;
+            let mut api_client = ApiClient::new(user_config);
             match matches.subcommand() {
                 Some(("add", sub_matches)) => {
                     let file = sub_matches.get_one::<String>("FILE").expect("required");
