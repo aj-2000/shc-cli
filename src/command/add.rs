@@ -67,7 +67,6 @@ pub async fn upload_file(
     let file_id = res.file_id;
     let file_name = res.file_name;
     let upload_url = res.upload_url;
-    // let user_id = res.user_id;
 
     let mut uploaded = 0;
 
@@ -108,7 +107,7 @@ pub async fn upload_file(
         }
     };
 
-    let _ = client
+    let res = client
         .put(upload_url)
         .body(reqwest::Body::wrap_stream(async_stream))
         .header("Content-Type", mime_type.as_ref())
@@ -127,19 +126,36 @@ pub async fn upload_file(
 
     pb.set_message("Adding file...");
 
-    let res = api_client.update_upload_status(&file_id, "uploaded").await;
-
-    pb.finish_and_clear();
-
-    match res {
-        Ok(_) => {
-            print!(
+    match res.status() {
+        reqwest::StatusCode::OK => {
+            let res = api_client.update_upload_status(&file_id, "uploaded").await;
+            pb.finish_and_clear();
+            match res {
+                Ok(_) => {
+                    print!(
                 "\n{} added successfully\nShcFile Link: https://shc.ajaysharma.dev/files/{}\n",
                 file_name, file_id
             );
+                }
+                Err(_) => {
+                    print!("Failed to add file");
+                }
+            }
         }
-        Err(_) => {
-            print!("Failed to add file");
+        _ => {
+            let res = api_client
+                .update_upload_status(file_id.as_str(), "failed")
+                .await;
+            pb.finish_and_clear();
+            match res {
+                Ok(_) => {
+                    print!("Failed to upload file");
+                }
+
+                Err(_) => {
+                    print!("Something went wrong!");
+                }
+            }
         }
     }
 

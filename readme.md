@@ -14,7 +14,8 @@
 - [ ] Path vs PathBuf
 - [ ] make config_path part of AppConfig
 - [ ] dynamic name width?
-- [ ] install script
+- [ ] install script -WIP
+
 - [ ] error.rs
 - [ ] generic config to create more config like user_config
 - [ ] make user and userInfo same
