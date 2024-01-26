@@ -18,7 +18,7 @@ impl ApiClient {
         ApiClient {
             api_base_url: SHC_BACKEND_API_BASE_URL.to_string(),
             tried_refreshing_token: false,
-            user_config: user_config,
+            user_config,
             client: reqwest::Client::new(),
         }
     }

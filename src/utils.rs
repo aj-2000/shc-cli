@@ -83,7 +83,7 @@ pub fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<Pa
                 let entry_path = result.unwrap().into_path();
 
                 // Skip the base path
-                if path == &entry_path {
+                if path == entry_path {
                     continue;
                 }
 

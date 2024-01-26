@@ -5,7 +5,7 @@ use crate::consts::MAX_NAME_WIDTH_LENGTH;
 use crate::models::ShcFile;
 use crate::utils::format_bytes;
 
-pub fn shc_file_input(files: &Vec<ShcFile>, prompt: &str) -> usize {
+pub fn shc_file_input(files: &[ShcFile], prompt: &str) -> usize {
     let size_width = 10;
     let updated_at_width = 20;
     let visibility_width = 10;
