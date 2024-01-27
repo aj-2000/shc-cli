@@ -6,7 +6,7 @@ pub fn cli() -> Command {
         .subcommand_required(false)
         .arg_required_else_help(false)
         .allow_external_subcommands(true)
-        .subcommand(Command::new("login").about("logging to use shc"))
+        .subcommand(Command::new("login").about("login to use shc"))
         .subcommand(
             Command::new("add")
                 .about("upload file")

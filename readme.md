@@ -4,13 +4,13 @@
 
 ## Install
 
-```
-$ curl -fsSl https://shc.ajaysharma.dev/install.sh | sh
+```sh
+curl -fsSl https://shc.ajaysharma.dev/install.sh | sh
 ```
 
 ## How to use?
 
-```
+```console
 Usage: shc [COMMAND]
 
 Commands:
@@ -28,7 +28,7 @@ Options:
     -h, --help  Print help
 ```
 
-# TODOs
+### TODOs
 
 - [ ] Share a portion of a file
 - [ ] Resume Upload
@@ -45,7 +45,7 @@ Options:
 - [ ] make config_path part of AppConfig
 - [ ] dynamic name width?
 - [ ] install script -WIP
-- [ ] error.rs
+- [ ] pretty error messages
 - [ ] generic config to create more config like user_config
 - [ ] make user and userInfo same
 - [ ] fix mut & if needed
