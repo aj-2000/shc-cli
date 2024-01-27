@@ -4,7 +4,7 @@
 
 ## Install
 
-```sh
+```console
 curl -fsSl https://shc.ajaysharma.dev/install.sh | sh
 ```
 
