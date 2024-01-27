@@ -8,6 +8,26 @@
 $ curl -fsSl https://shc.ajaysharma.dev/install.sh | sh
 ```
 
+## How to use?
+
+```
+Usage: shc [COMMAND]
+
+Commands:
+    login       logging to use shc
+    add         upload file
+    list        list all files
+    remove      remove file
+    visibility  toggle file's visibility
+    rename      rename file
+    get         download file
+    logout      logout from shc
+    help        Print this message or the help of the given subcommand(s)
+
+Options:
+    -h, --help  Print help
+```
+
 # TODOs
 
 - [ ] Share a portion of a file

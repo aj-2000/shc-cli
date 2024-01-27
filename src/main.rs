@@ -11,8 +11,8 @@ use std::path::PathBuf;
 
 use crate::api_client::ApiClient;
 use crate::command::auth::{check_for_api_key, login, logout};
-
 use crate::user_config::UserConfig;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut user_config = UserConfig::new();
