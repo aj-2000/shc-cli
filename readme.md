@@ -6,7 +6,6 @@
 
 ```
 $ curl -fsSl https://shc.ajaysharma.dev/install.sh | sh
-
 ```
 
 # TODOs
