@@ -14,7 +14,7 @@ curl -fsSl https://shc.ajaysharma.dev/install.sh | sh
 Usage: shc [COMMAND]
 
 Commands:
-    login       logging to use shc
+    login       login to use shc
     add         upload file
     list        list all files
     remove      remove file
