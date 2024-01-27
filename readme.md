@@ -1,4 +1,15 @@
-# TODO
+# SHC
+
+## share in minimum steps (Heavily Work in Progress)
+
+## Install
+
+```
+$ curl -fsSl https://shc.ajaysharma.dev/install.sh | sh
+
+```
+
+# TODOs
 
 - [ ] Share a portion of a file
 - [ ] Resume Upload
@@ -22,3 +33,4 @@
 - [ ] better email otp template
 - [ ] update timeago interactively
 - [ ] localize consts
+- [ ] pre-compiled binaries
