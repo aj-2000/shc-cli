@@ -38,11 +38,9 @@ Options:
 - [ ] highlight imp words in output
 - [ ] new text file
 - [ ] custom download path
-- [ ] set upload_status to failed if get some error
 - [ ] shc get < link / id >
 - [ ] can we render html on cli or backend?
 - [ ] Path vs PathBuf
-- [ ] make config_path part of AppConfig
 - [ ] dynamic name width?
 - [ ] install script -WIP
 - [ ] pretty error messages
@@ -50,6 +48,10 @@ Options:
 - [ ] make user and userInfo same
 - [ ] fix mut & if needed
 - [ ] better email otp template
-- [ ] update timeago interactively
-- [ ] localize consts
 - [ ] pre-compiled binaries
+- [ ] restart terminal message
+- [ ] how to start using message after installation
+- [ ] fix ajaysharmadev zip
+- [ ] show description of different properties on file details property page
+- [ ] load balancing between two servers?
+- [ ] bin command?

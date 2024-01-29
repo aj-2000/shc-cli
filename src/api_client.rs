@@ -281,4 +281,31 @@ impl ApiClient {
             _ => Err(Error::new(ErrorKind::Other, "Something went wrong").into()),
         }
     }
+
+    #[async_recursion]
+    pub async fn increment_download_count(
+        &mut self,
+        file_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let access_token = self.user_config.user.access_token.as_ref().unwrap();
+
+        let res = self
+            .client
+            .patch(format!(
+                "{}/api/files/increment-download-count/{}",
+                self.api_base_url, file_id
+            ))
+            .header("Authorization", access_token)
+            .send()
+            .await?;
+
+        match res.status() {
+            reqwest::StatusCode::OK => Ok(()),
+            reqwest::StatusCode::UNAUTHORIZED => {
+                self.refresh_token().await?;
+                return self.increment_download_count(file_id).await;
+            }
+            _ => Err(Error::new(ErrorKind::Other, "Something went wrong").into()),
+        }
+    }
 }

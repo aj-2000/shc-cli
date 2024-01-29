@@ -103,6 +103,12 @@ pub async fn download_file(
         }
         bar.finish_and_clear();
         println!("Downloaded {}", file_name);
+
+        // try to increment download count but ignore the result
+        match api_client.increment_download_count(&file_id).await {
+            Ok(_) => {}
+            Err(_) => {}
+        };
     }
 
     Ok(())
