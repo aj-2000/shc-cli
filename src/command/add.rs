@@ -133,7 +133,7 @@ pub async fn upload_file(
             match res {
                 Ok(_) => {
                     print!(
-                "\n{} added successfully\nShcFile Link: https://shc.ajaysharma.dev/files/{}\n",
+                "\n{} added successfully\nShcFile Link: https://shc.ajaysharma.dev/share/{}\n",
                 file_name, file_id
             );
                 }
