@@ -6,6 +6,7 @@ use zip::write::FileOptions;
 use zip::{CompressionMethod::Bzip2, ZipWriter};
 
 use crate::consts::SHC_IGNORE_FILE_NAME;
+use tempfile::NamedTempFile;
 
 pub fn format_bytes(bytes: u64) -> String {
     let mut bytes = bytes as f64;
@@ -33,11 +34,11 @@ pub fn format_bytes(bytes: u64) -> String {
 
 pub fn zip_directory_recursive(src_dir: &Path, size_limit: u64) -> io::Result<PathBuf> {
     let src_dir = fs::canonicalize(src_dir)?;
-
-    let dest_file_path = src_dir
-        .file_name()
-        .map(|name| PathBuf::from(name.to_string_lossy().into_owned() + ".zip"))
-        .unwrap_or_else(|| PathBuf::from("archive.zip"));
+    let folder_name = src_dir.file_name().unwrap().to_string_lossy();
+    let dest_file_path = NamedTempFile::new_in("/tmp")?
+        .into_temp_path()
+        .with_extension("zip")
+        .with_file_name(format!("{}.zip", folder_name));
 
     let dest_file = File::create(&dest_file_path)?;
 

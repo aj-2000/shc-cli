@@ -25,6 +25,7 @@ zip = "0.6.6"
 async-recursion = "1.0.5"
 ignore = "0.4.22"
 timeago = "0.4.2"
+tempfile = "3.9.0"
 
 [profile.release]
 strip = true
